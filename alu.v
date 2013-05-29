@@ -1,11 +1,11 @@
-module alu (op, in1, in2, clk, out, able)
+module alu (op, in1, in2, clk, out, able);
 
 	`include "parameters.v"
 
 	input wire [3:0] op;
 	input wire clk, able;
 	input wire [WORD_SIZE-1:0] in1, in2;
-	output wire [WORD_SIZE-1:0] out;
+	output reg [WORD_SIZE-1:0] out;
 
 	always @(posedge clk) begin
 		if (able) begin
@@ -26,7 +26,7 @@ module alu (op, in1, in2, clk, out, able)
                     out <= in1 ^ in2;
                 ALU_LSHIFT:
                     out <= in1 << in2;
-                ALU_RSHIFT
+                ALU_RSHIFT:
                 	out <= in1 >> in2;
             endcase
 		end
