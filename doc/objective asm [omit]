@@ -1,7 +1,7 @@
 	.text
 	.globl main
 main:
-	addiu	$gp, $gp, 4		?? nothing global why this	
+	addiu	$gp, $gp, 4		#?? nothing global why this
 	subu	$sp, $sp, 168
 	addiu	$fp, $sp, 168
 	sub	$a1, $fp, 92
