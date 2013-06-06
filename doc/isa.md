@@ -1,33 +1,7 @@
 ISA
 =====
 ##instructions
-`add`
-
-`sub`
-
-`mul`
-
-`lw`
-
-`sw`
-
-`addi`
-
-`subi`
-
-`muli`
-
-`lwi`
-
-`swi`
-
-`li`
-
-`j`
-
-`jr`
-
-`bge`
+`add` `sub` `mul` `lw` `sw` `addi` `subi` `muli` `lwi` `swi` `li` `j` `jr` `bge` 
 
 ##add
 calculate `op1+op2` and save the result into `dst`
