@@ -138,3 +138,42 @@ dst: register
 base: register
 offset: immediate
 ```
+
+##li
+load an immediate into `dst`
+###usage
+```
+li dst, imm
+
+dst: register
+imm: immediate
+```
+
+##j
+jump to a label
+###usage
+```
+j label
+
+label: label
+```
+
+##jr
+jump to address of `dst`
+###usage
+```
+jr dst
+
+dst: register
+```
+
+##bge
+branch if `op1>=op2`
+###usage
+```
+bge op1, op2, label
+
+op1: register
+op2: immediate
+label: label
+```
