@@ -3,7 +3,7 @@
 require "stringio"
 class Assembler
     def initialize(input, output)
-        @INST   = %w[add sub mul lw sw addi subi muli lwi swi li j jr bge]
+        @INST   = %w[add sub mul lwrr swrr addi subi muli lw sw li j jr bge]
         @REG    = %w[zero at v0 v1 a0 a1 a2 a3 t0 t1 t2 t3 t4 t5 t6 t7 s0 s1
                      s2 s3 s4 s5 s6 s7 t8 t9 k0 k1 gp sp fp ra]
         @input, @output = input.read, output
@@ -32,10 +32,9 @@ class Assembler
             ops = op_str.gsub(/\s+/,'').split(',')
 
             #normalize lw and sw
-            if %w[lw sw].include? inst_str
+            if %w[lw sw lwrr swrr].include? inst_str
                 pattern = /([\w\$]+)?(?:\(([\w\$]+)\))?/
                 ops = [ops[0],*ops[1].match(pattern)[1..2].map{|e|e||"0"}.reverse]
-                inst_str << 'i' unless ops[2].include? '$'
             end
 
             @insts << [@INST.find_index(inst_str), ops, line]

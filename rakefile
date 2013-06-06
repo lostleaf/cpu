@@ -1,0 +1,28 @@
+namespace :test do
+
+    desc 'test alu'
+    task :alu do
+        test(['testbench/alu_tb.v', 'alu.v'], 'test_alu')
+    end    
+
+    desc "test pointer"
+    task :pointer  do
+        test(['testbench/pointer_tb.v', 'pointer.v'], 'test_pointer')
+    end
+
+    desc "clear all teshbench executables"
+    task :clear do
+        rm Dir["test_*"]
+    end
+
+    def test(inputs, output)
+        puts `iverilog #{inputs.join(' ')} -o #{output}`
+        vvp_pid = Process.spawn("vvp #{output}")
+        trap("INT") {
+            Process.kill(9, vvp_pid) rescue Errno::ESRCH 
+            exit 0
+        }
+        Process.wait(vvp_pid)       
+    end
+end
+

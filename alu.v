@@ -1,14 +1,14 @@
-module alu (op, in1, in2, clk, out, able);
+module alu(op, in1, in2, clk, out, alu_enable);
 
-	`include "parameters.v"
+    `include "parameters.v"
 
-	input wire [3:0] op;
-	input wire clk, able;
-	input wire [WORD_SIZE-1:0] in1, in2;
-	output reg [WORD_SIZE-1:0] out;
+    input wire [3:0] op;
+    input wire [WORD_SIZE-1:0] in1, in2;
+    input wire clk, alu_enable;
+    output reg [WORD_SIZE-1:0] out;
 
-	always @(posedge clk) begin
-		if (able) begin
+    always @(posedge clk) begin
+        if (alu_enable) begin
             case (op)
                 ALU_ADD:
                     out <= in1 + in2;
@@ -16,20 +16,9 @@ module alu (op, in1, in2, clk, out, able);
                     out <= in1 - in2;
                 ALU_MUL:
                     out <= in1 * in2;
-                ALU_SLT:
-                    out <= in1 < in2;
-                ALU_AND:
-                    out <= in1 & in2;
-                ALU_OR:
-                    out <= in1 | in2;
-                ALU_XOR:
-                    out <= in1 ^ in2;
-                ALU_LSHIFT:
-                    out <= in1 << in2;
-                ALU_RSHIFT:
-                	out <= in1 >> in2;
             endcase
-		end
-	end
+        end
+    end
 
 endmodule
+
