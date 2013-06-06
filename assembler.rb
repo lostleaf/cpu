@@ -33,7 +33,9 @@ class Assembler
 
             #normalize lw and sw
             if %w[lw sw].include? inst_str
-                ops = [ops[0],*ops[1].match(/([\w\$]+)?(?:\(([\w\$]+)\))?/)[1..2].map{|e|e||"0"}]
+                pattern = /([\w\$]+)?(?:\(([\w\$]+)\))?/
+                ops = [ops[0],*ops[1].match(pattern)[1..2].map{|e|e||"0"}.reverse]
+                inst_str << 'i' unless ops[2].include? '$'
             end
 
             @insts << [@INST.find_index(inst_str), ops, line]
