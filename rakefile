@@ -1,18 +1,29 @@
 namespace :test do
 
+    desc "clear all teshbench executables"
+    task :clear do
+        rm Dir["test_*"]
+    end
+
     desc 'test alu'
-    task :alu do
+    task :alu => [:clear] do
         test(['testbench/alu_tb.v', 'alu.v'], 'test_alu')
     end    
 
     desc "test pointer"
-    task :pointer  do
+    task :pointer => [:clear] do
         test(['testbench/pointer_tb.v', 'pointer.v'], 'test_pointer')
     end
 
-    desc "clear all teshbench executables"
-    task :clear do
-        rm Dir["test_*"]
+
+    desc "test instruction memory"
+    task :inst_memory => [:clear] do
+        test(['testbench/inst_memory_tb.v', 'inst_memory.v'], 'test_inst_memory')
+    end
+
+    desc "test instruction cache"
+    task :inst_cache => [:clear] do
+        test(['testbench/inst_cache_tb.v', 'inst_memory.v', 'inst_cache.v'], 'test_inst_cache')
     end
 
     def test(inputs, output)
