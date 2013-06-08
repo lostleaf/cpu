@@ -1,0 +1,7 @@
+package roxanne.translator;
+
+abstract class Entry {
+	Integer level;
+	
+	//Entry(Integer l) { level = l;}
+}

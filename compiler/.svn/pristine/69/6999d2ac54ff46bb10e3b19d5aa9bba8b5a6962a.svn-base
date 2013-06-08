@@ -1,0 +1,10 @@
+package roxanne.ast;
+
+public class Dec extends Def {
+	public Type type;
+	public InitDecList list;
+	public Dec (Type t, InitDecList l){
+		type = t;
+		list = l;
+	}
+}

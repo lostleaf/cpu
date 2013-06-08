@@ -1,0 +1,294 @@
+package roxanne.syntactic;
+
+import java.io.*;
+import roxanne.ast.*;
+import roxanne.ast.Character;
+import roxanne.ast.Void;
+
+
+
+parser code {:
+	private PrintWriter out;
+	public void report_error(String message, Object info) {
+		StringBuffer m = new StringBuffer("\tParsing error");
+		if (info instanceof java_cup.runtime.Symbol) {
+			java_cup.runtime.Symbol s = (java_cup.runtime.Symbol) info;
+
+			if (s.left >= 0) {
+				m.append(" in line " + (s.left +1 ));
+				if (s.right >= 0) {
+					m.append(", column " + (s.right + 1));
+				}
+			}
+		}
+		m.append(" : " + message);
+		System.err.println(m);
+		out.println(m);
+	}
+
+	public Parser(InputStream inp) throws FileNotFoundException {
+		this(new Yylex(inp));
+		out = new PrintWriter(new FileOutputStream("/D:/Java/compiler/bin/roxanne/main/exprtest.s"));
+	}
+:};
+
+terminal			TYPEDEF, VOID, CHAR, INT, STRUCT, UNION, IF, ELSE, WHILE, FOR, CONTINUE, BREAK, RETURN, SIZEOF;
+terminal			LPAREN, RPAREN, LBRACE, RBRACE, LBRACKET, RBRACKET;
+terminal			SEMICOLON, COMMA, DOT, ELLIPSIS, PLUS, MINUS,TIMES, DIVIDE, MOD, INC, DEC,RINC, RDEC, LINC, LDEC;
+terminal			PTR;
+terminal			BITOR, BITXOR, BITAND, BITNOT, NOT, OR, AND;
+terminal			SHL, SHR;
+terminal			EQ, NE, GT, LT, GE, LE;
+terminal			ASSIGN, MULASSIGN, DIVASSIGN, MODASSIGN, ADDASSIGN, SUBASSIGN, ANDASSIGN, ORASSIGN, XORASSIGN, SHLASSIGN, SHRASSIGN;
+terminal Integer	NUM;
+terminal String		ID;
+terminal char		CHARACTER;	// not a class, is it ok??
+terminal String		STRINGTEXT;
+
+
+non terminal Expr		expr, primary_expr,	cast_expr, postfix_expr, unary_expr, postfix_exprl;
+non terminal Type 		typename, type_specifier;
+non terminal ExprList 	exprlist, initer, expr_element;
+non terminal DefList		program;
+non terminal Def			dec;
+non terminal FuncDef		func_def;
+non terminal ParaList		vara_paralist, paralist;
+non terminal Para			plain_dec;
+non terminal InitDecList	declist, init_declist;
+non terminal InitDector		init_dector;
+non terminal Dector			dector;
+non terminal Array 			array_dector;
+non terminal PlainDector 	plain_dector;
+		
+non terminal Stmt 		stmt, other_stmt, expr_stmt, iter_stmt, jump_stmt, matched_stmt;
+non terminal Block		block;
+non terminal DefList 	deflist;
+non terminal StmtList 	stmtlist;
+non terminal If 		open_stmt;
+non terminal StructUnion struct_or_union;
+non terminal DecList	record_def; //list of dection while initDecList :=list of initdector
+
+			
+
+precedence right	COMMA, ELSE;
+precedence right	ASSIGN, MULASSIGN, DIVASSIGN, MODASSIGN, ADDASSIGN, SUBASSIGN, ANDASSIGN, ORASSIGN, XORASSIGN, SHLASSIGN, SHRASSIGN;
+precedence left		OR;
+precedence left		AND;
+precedence left		BITOR;
+precedence left		BITXOR;
+precedence left		BITAND;
+precedence left		EQ, NE;
+precedence left		GT, LT, GE, LE;
+precedence left		SHL, SHR;
+precedence left		PLUS, MINUS;
+precedence left		TIMES, DIVIDE, MOD;
+precedence right	RDEC, RINC;
+precedence left		LDEC, LINC;
+
+
+start with program;
+program ::= dec:d					{: RESULT = new DefList(d, null); :}
+		| func_def:f				{: RESULT = new DefList(f, null); :}
+		| dec:d program:p			{: RESULT = new DefList(d, p); :}
+		| func_def:f program:p 		{: RESULT = new DefList(f, p); :}
+		;
+
+dec ::= TYPEDEF type_specifier:t declist:dl SEMICOLON		//dec for declaration
+									{: RESULT = new TypeDef(t, dl); :}
+		| type_specifier:t SEMICOLON	{: RESULT = new Dec(t,null); :}
+		| type_specifier:t init_declist:initdl SEMICOLON
+									{: RESULT = new Dec(t,initdl); :}
+		;
+func_def ::= type_specifier:t plain_dector:p LPAREN RPAREN block:b
+									{: RESULT = new FuncDef(p,t,null,b); :}
+		| type_specifier:t plain_dector:p LPAREN vara_paralist:pl RPAREN block:b		//	cannot use typename, since dec also starts with type specifier, it will thus cause shift/reduce conflict
+									{: RESULT = new FuncDef(p,t,pl,b); :}
+		;
+vara_paralist ::= paralist:pl		{: RESULT = pl; :}
+		| paralist:pl COMMA ELLIPSIS {: RESULT = new ParaList(new Ellipsis(), pl); :}
+		;
+paralist ::= plain_dec:pd 			{: RESULT = new ParaList(pd, null); :}
+		| plain_dec:pd COMMA paralist:pl 
+									{: RESULT = new ParaList(pd, pl); :}	// head paralist, tail Argument
+		;
+plain_dec ::= type_specifier:t dector:d										// typename??
+									{: RESULT = new Para(t, d); :}
+		;
+declist ::= dector:d				{: RESULT = new InitDecList(new InitDector(d, null), null); :}
+		| dector:d COMMA declist:dl {: RESULT = new InitDecList(new InitDector(d,null), dl); :}
+		;
+init_declist ::= init_dector:id		{: RESULT = new InitDecList(id, null); :}
+		| init_dector:id COMMA init_declist:idl										// COMMA!!!!!!!
+									{: RESULT = new InitDecList(id, idl); :}
+		;
+init_dector ::= dector:d			{: RESULT = new InitDector(d, null); :}
+		| dector:d ASSIGN initer:i 	{: RESULT = new InitDector(d, i); :}			//initer for initializer
+		;
+initer ::= expr:e					{: RESULT = new ExprList(e, null); :}
+		| LBRACE exprlist:is RBRACE	{: RESULT = is; :}							//why ok??????
+		;
+
+dector ::= plain_dector:pd LPAREN RPAREN											
+									{: RESULT = new FuncDec(pd, null); :}
+		| plain_dector:pd LPAREN vara_paralist:vpl RPAREN
+									{: RESULT = new FuncDec(pd, vpl); :}
+		| plain_dector:pd			{: RESULT = pd; :}
+		| array_dector:ad			{: RESULT = ad; :}
+		;
+array_dector ::= plain_dector:pd LBRACKET expr:e RBRACKET 							// e should be a constant expr ??
+									{: RESULT = new Array(pd, e); :}
+		| array_dector:ad LBRACKET expr:e RBRACKET 							// e should be a constant expr ??
+									{: RESULT = new Array(ad, e); :}
+		;
+plain_dector ::= ID:i				{: RESULT = new DecName(i); :}
+		| TIMES plain_dector:pd		{: RESULT = new DecPtr(pd); :}
+		;
+		
+
+typename ::= typename:t TIMES	{: RESULT = new Pointer(t); :}
+ 	   | type_specifier:t		{: RESULT = t; :}
+ 	   ;
+type_specifier::= VOID			{: RESULT = new Void(); :} 
+		| CHAR					{: RESULT = new Char(); :} 		//可否重名
+		| INT 					{: RESULT = new Int(); :} 
+		| struct_or_union:su LBRACE record_def:r RBRACE
+								{: su.record = r; RESULT = su; :}
+		| struct_or_union:su ID:i LBRACE record_def:r RBRACE
+								{: su.name = i; su.record = r; RESULT = su; :}
+		| struct_or_union:su ID:i 
+								{: su.name = i; RESULT = su; :}
+		; 	
+struct_or_union ::= STRUCT		{: RESULT = new Struct(); :}
+		| UNION					{: RESULT = new Union(); :}
+		;
+record_def::= type_specifier:t declist:dl SEMICOLON	
+								{: RESULT = new DecList(new Dec(t, dl)); :}
+		| type_specifier:t declist:dl SEMICOLON record_def:rd
+								{: RESULT = new DecList(new Dec(t, dl), rd); :}
+		;
+		
+stmt ::= matched_stmt:ms			{: RESULT = ms; :}
+		| open_stmt:os				{: RESULT = os; :}
+		;
+other_stmt ::= expr_stmt:es			{: RESULT = es; :}
+		| block:b					{: RESULT = b; :}
+		| iter_stmt:is				{: RESULT = is; :}		// iter for iteration
+		| jump_stmt:js				{: RESULT = js; :}
+		;
+expr_stmt ::= SEMICOLON				{: RESULT = null; :}
+		| exprlist:e SEMICOLON		{: RESULT = e; :}
+		;
+block ::= LBRACE stmtlist:sl RBRACE				// declarations and statements intertwining together is not allowed ??
+									{: RESULT = new Block(null, sl); :}
+		| LBRACE RBRACE				{: RESULT = new Block(null, null); :}
+		| LBRACE deflist:dl RBRACE				// declarations and statements intertwining together is not allowed ??
+									{: RESULT = new Block(dl, null); :}
+		| LBRACE deflist:dl stmtlist:sl RBRACE				// declarations and statements intertwining together is not allowed ??
+									{: RESULT = new Block(dl, sl); :}
+		;
+deflist ::= dec:d 					{: RESULT = new DefList(d, null); :}
+		| dec:d deflist:dl			{: RESULT = new DefList(d, dl); :}
+		;
+stmtlist ::= stmt:s					{: RESULT = new StmtList(s, null); :}
+		| stmt:s stmtlist:sl		{: RESULT = new StmtList(s, sl); :}
+		;
+iter_stmt ::= WHILE LPAREN exprlist:el RPAREN stmt:s	
+									{: RESULT = new While(el, s); :}
+		| FOR LPAREN expr_element:e1 SEMICOLON expr_element:e2 SEMICOLON expr_element:e3 RPAREN stmt:s
+									{: RESULT = new For(e1, e2, e3, s); :}
+		;
+expr_element ::= exprlist:el 		{: RESULT = el; :}
+		| /*empty*/					{: RESULT = null; :}
+		;
+jump_stmt ::= CONTINUE SEMICOLON	{: RESULT = new Continue(); :}
+		| BREAK SEMICOLON			{: RESULT = new Break(); :}
+		| RETURN SEMICOLON			{: RESULT = new Return(null); :}
+		| RETURN exprlist:el SEMICOLON	{: RESULT = new Return(el); :}
+		;
+matched_stmt ::= IF LPAREN expr:e RPAREN matched_stmt:ms1 ELSE matched_stmt:ms2 
+									{: RESULT = new If(e, ms1, ms2); :}
+		| other_stmt:os				{: RESULT = os; :}
+		;
+open_stmt ::= IF LPAREN expr:e RPAREN stmt:s
+									{: RESULT = new If(e, s, null); :}
+		| IF LPAREN expr:e RPAREN matched_stmt:ms ELSE open_stmt:os
+									{: RESULT = new If(e, ms, os); :}
+		;
+			
+
+expr ::= expr:l PLUS expr:r			{: RESULT = new BExpr(l, Expr.OpType.PLUS, r); :}
+       | expr:l MINUS expr:r		{: RESULT = new BExpr(l, Expr.OpType.MINUS, r); :}
+       | expr:l TIMES expr:r		{: RESULT = new BExpr(l, Expr.OpType.TIMES, r); :}
+       | expr:l DIVIDE expr:r		{: RESULT = new BExpr(l, Expr.OpType.DIVIDE, r); :}
+       | expr:l MOD	expr:r			{: RESULT = new BExpr(l, Expr.OpType.MOD, r); :}
+       | expr:l OR expr:r			{: RESULT = new BExpr(l, Expr.OpType.OR, r); :}
+       | expr:l AND	expr:r			{: RESULT = new BExpr(l, Expr.OpType.AND, r); :}
+       | expr:l BITOR expr:r		{: RESULT = new BExpr(l, Expr.OpType.BITOR, r); :}
+       | expr:l BITAND	expr:r		{: RESULT = new BExpr(l, Expr.OpType.BITAND, r); :}
+       | expr:l BITXOR	expr:r		{: RESULT = new BExpr(l, Expr.OpType.BITXOR, r); :}
+       | expr:l EQ	expr:r			{: RESULT = new BExpr(l, Expr.OpType.EQ, r); :}
+       | expr:l NE	expr:r			{: RESULT = new BExpr(l, Expr.OpType.NE, r); :}
+       | expr:l GE	expr:r			{: RESULT = new BExpr(l, Expr.OpType.GE, r); :}
+       | expr:l LE	expr:r			{: RESULT = new BExpr(l, Expr.OpType.LE, r); :}
+       | expr:l GT	expr:r			{: RESULT = new BExpr(l, Expr.OpType.GT, r); :}
+       | expr:l LT	expr:r			{: RESULT = new BExpr(l, Expr.OpType.LT, r); :}
+       | expr:l SHL	expr:r			{: RESULT = new BExpr(l, Expr.OpType.SHL, r); :}
+       | expr:l SHR	expr:r			{: RESULT = new BExpr(l, Expr.OpType.SHR, r); :}
+       | expr:l ASSIGN	expr:r		{: RESULT = new BExpr(l, Expr.OpType.ASSIGN, r); :}
+       | unary_expr:l MULASSIGN	expr:r	{: RESULT = new BExpr(l, Expr.OpType.MULASSIGN, r); :}
+       | unary_expr:l DIVASSIGN	expr:r	{: RESULT = new BExpr(l, Expr.OpType.DIVASSIGN, r); :}
+       | unary_expr:l MODASSIGN	expr:r	{: RESULT = new BExpr(l, Expr.OpType.MODASSIGN, r); :}
+       | unary_expr:l ADDASSIGN	expr:r	{: RESULT = new BExpr(l, Expr.OpType.ADDASSIGN, r); :}
+       | unary_expr:l SUBASSIGN	expr:r	{: RESULT = new BExpr(l, Expr.OpType.SUBASSIGN, r); :}
+       | unary_expr:l ANDASSIGN	expr:r	{: RESULT = new BExpr(l, Expr.OpType.ANDASSIGN, r); :}
+       | unary_expr:l ORASSIGN	expr:r	{: RESULT = new BExpr(l, Expr.OpType.ORASSIGN, r); :}
+       | unary_expr:l XORASSIGN	expr:r	{: RESULT = new BExpr(l, Expr.OpType.XORASSIGN, r); :}
+       | unary_expr:l SHLASSIGN	expr:r	{: RESULT = new BExpr(l, Expr.OpType.SHLASSIGN, r); :}
+       | unary_expr:l SHRASSIGN	expr:r	{: RESULT = new BExpr(l, Expr.OpType.SHRASSIGN, r); :}
+	   | cast_expr:c					{: RESULT = c; :}
+	   ;
+cast_expr ::= unary_expr:u		{: RESULT = u; :}
+	   | LPAREN typename:t RPAREN	cast_expr:e {: RESULT = new BExpr(t, Expr.OpType.CAST, e); :}
+	   ;
+unary_expr ::= postfix_expr:p	{: RESULT = p; :}		//postfix's precedence is higher than uminus...
+	   | INC unary_expr:l		{: RESULT = new UExpr(Expr.OpType.LINC, l); :}	%prec LINC
+       | DEC unary_expr:l		{: RESULT = new UExpr(Expr.OpType.LDEC, l); :}	%prec LDEC
+       | BITAND cast_expr:l		{: RESULT = new UExpr(Expr.OpType.POS, l); :}
+       | TIMES cast_expr:l		{: RESULT = new UExpr(Expr.OpType.GET, l); :}
+       | MINUS cast_expr:l		{: RESULT = new UExpr(Expr.OpType.UMINUS, l); :}
+       | PLUS cast_expr:l		{: RESULT = new UExpr(Expr.OpType.UPLUS, l); :}
+       | BITNOT cast_expr:l		{: RESULT = new UExpr(Expr.OpType.BITNOT, l); :}
+       | NOT cast_expr:l		{: RESULT = new UExpr(Expr.OpType.NOT, l); :}
+       | SIZEOF unary_expr:l	{: RESULT = new UExpr(Expr.OpType.SIZEOFE, l); :}	//sizeof an expression
+       | SIZEOF LPAREN typename:t RPAREN	{: RESULT = new UExpr(Expr.OpType.SIZEOFT, t); :}	//typename is not an expr, but will have a conversion function
+       ;
+postfix_expr ::= primary_expr:p	{: RESULT = p; :}		//no other op before postfix's primary_expr is allowed!
+	   | primary_expr:l INC		{: RESULT = new UExpr(Expr.OpType.RINC, l); :} 	%prec RINC	//diff
+       | primary_expr:l DEC		{: RESULT = new UExpr(Expr.OpType.RDEC, l); :}	%prec RDEC	//diff
+       | postfix_expr:l LBRACKET expr:r RBRACKET	
+       							{: RESULT = new BExpr(l,Expr.OpType.ARRAY, r); :}
+       | postfix_exprl:i exprlist:el RPAREN		
+       							{: RESULT = new Func((Var)i, el); :}		// (arguments 嵌套??)
+	   | postfix_exprl:i RPAREN		
+	   							{: RESULT = new Func((Var)i, null); :}		//name must be a var
+	   | postfix_expr:l PTR ID:i2 	
+	   							{: RESULT = new BExpr(l, Expr.OpType.PTR, new Var(i2)); :}
+       | postfix_expr:l DOT ID:i2
+								{: RESULT = new BExpr(l, Expr.OpType.DOT, new Var(i2)); :}
+       ;
+postfix_exprl ::= postfix_expr:pe LPAREN	// ?? 改成id
+								{: RESULT = pe; :}
+	   ;
+primary_expr ::= ID:i 			{: RESULT = new Var(i); :}
+       | CHARACTER:c			{: RESULT = new Character(c); :}	//implicit cast?
+       | NUM:n					{: RESULT = new Num(n); :}
+       | STRINGTEXT:s			{: RESULT = new Str(s); :}
+       | LPAREN expr:e RPAREN	{: RESULT = e; :}
+       ;
+
+exprlist ::= expr:e				{: RESULT = new ExprList(e, null); :}
+	   | expr:e COMMA exprlist:el	
+	   							{: RESULT = new ExprList(e, el); :}
+	   ;
+
+ 

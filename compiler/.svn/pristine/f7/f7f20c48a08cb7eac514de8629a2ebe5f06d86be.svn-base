@@ -1,0 +1,8 @@
+package roxanne.ast;
+
+public class Str extends Expr {
+	public String string;
+	public Str(String s){
+		string = s;
+	}
+}

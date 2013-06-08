@@ -122,5 +122,13 @@ RB check oprand for branch ready or not
 if not, stop to do anything??
 
 ####Work Allocation??
+#### li?
+good instruction referred in VMIPS p266
+
+CVI	V1, R1//	V1[i] = i*R1
+
+we could have 
+
+CVI		V1, imm		// V1[i] = i*imm
 
 	

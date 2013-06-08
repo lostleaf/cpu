@@ -1,0 +1,13 @@
+package roxanne.translator;
+
+import roxanne.ast.Block;
+import roxanne.types.*;
+class FuncEntry extends Entry {
+	FUNC type;
+	Block block;
+	FuncEntry(FUNC fp) { type = fp; block = null;}
+	FuncEntry(FUNC fp, Block b) { type = fp; block = b; }
+	public String toString() {
+		return type.toString();
+	}
+}
