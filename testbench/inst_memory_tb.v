@@ -1,7 +1,9 @@
 module inst_memory_testbench;
     `include "parameters.v"
 
-    wire [WORD_SIZE-1:0] out, ptr;
+    wire [WORD_SIZE-1:0] ptr;
+    wire [WORD_SIZE*BLOCK_SIZE-1:0] out;
+
     reg clk = 0;
     reg [31:0]num = 0;
     always #1 clk = ~clk;

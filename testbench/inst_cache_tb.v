@@ -2,27 +2,29 @@ module inst_cache_testbench;
     `include "parameters.v"
 
     wire [WORD_SIZE-1:0] out, ptr;
-    reg clk = 0;
-    reg [31:0]num = 0;
-    wire inst_get, is_ready;
+    wire hit;
+    reg clk = 1;
     always #1 clk = ~clk;
-    inst_cache ic(out, clk, ptr, inst_get, is_ready);
 
-    wire [WORD_SIZE:0] test_data [0:2];
+    inst_cache ic(out, clk, ptr, hit);
 
-    assign test_data[0] = {32'd1, 1'b1};
-    assign test_data[1] = {32'd2, 1'b1};
-    assign test_data[2] = {32'd3, 1'b1};
+    wire [WORD_SIZE-1:0] test_data [0:3];
 
-    assign {ptr, inst_get} = test_data[num];
+    assign test_data[0] = 32'd1;
+    assign test_data[1] = 32'd2;
+    assign test_data[2] = 32'd3;
+    assign test_data[3] = 32'd17;
+
+
+    wire [WORD_SIZE-1:0] e;
+    assign ptr = test_data[num];
 
     initial
-        $monitor("time = %d, out = %h(%b), is_ready = %b, num = %d, inst_get = %b", $time, out, out, is_ready, num, inst_get);
+        $monitor("time = %d, out = %h(%b), hit = %b, ptr = %d", $time, out, out, hit, ptr);
 
-    reg [31:0] dd = 0;
+    reg [31:0]num = 0;
     always @(negedge clk) begin
-        if (dd == 20) $finish;
-        if (is_ready) num <= num + 1;
-        dd <= dd+1;
+        if (num == 20) $finish;
+        num <= num + 1;
     end
 endmodule

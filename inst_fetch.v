@@ -1,4 +1,4 @@
-module instr_fetch(inst, ptr, clk, fetch_enable);
+module inst_fetch(inst, ptr, clk, fetch_enable);
 
     `include "parameters.v"
 
@@ -7,7 +7,7 @@ module instr_fetch(inst, ptr, clk, fetch_enable);
     input wire [WORD_SIZE-1:0] ptr;
     input wire clk, fetch_enable;
 
-    instr_memory memory(out, ptr);
+    inst_memory memory(out, ptr);
 
     always @(posedge clk) begin
         if (fetch_enable) inst <= out;

@@ -1,30 +1,36 @@
-module inst_cache (out, clk, ptr, inst_get, ready);
+module inst_cache (out, clk, ptr, hit);
     
     `include "parameters.v"
 
-    input wire  clk, inst_get;
-    output reg  ready=0;
+    input wire  clk;
+    output reg  hit;
 
     output reg  [WORD_SIZE-1:0] out;
     input wire  [WORD_SIZE-1:0] ptr;
     wire        [WORD_SIZE-1:0] inst;
-    reg         [WORD_SIZE-1:0] p;
-    reg         [3:0]           offset;
-    reg         [9:0]           index;
 
-    reg         [WORD_SIZE-1:0] cache [SET_SIZE-1:0][CHANNEL_SIZE-1:0][BLOCK_SIZE-1:0];
-    reg         [TAG_SIZE -1:0]  tag  [SET_SIZE-1:0][CHANNEL_SIZE-1:0];
+    wire        [WORD_SIZE*BLOCK_SIZE-1:0] inst_block;
+    
+    inst_memory imemory(inst_block, inst, ptr);
+    
+    wire  [3:0]   offset;
+    wire  [9:0]   index;
+    wire  [17:0]  inst_tag;
 
+    reg   [WORD_SIZE*BLOCK_SIZE-1:0] cache [CACHE_SIZE-1:0];
+    reg   [TAG_SIZE-1:0]  tag  [CACHE_SIZE-1:0];
+    
 
-    inst_memory memory(inst, p);
+    assign offset   = ptr[3:0];
+    assign index    = ptr[13:4];
+    assign inst_tag = ptr[31:14];
 
     always @(posedge clk) begin
-        if (inst_get) begin
-            ready  = 0;
-            p      = ptr;
-            offset = p[3:0];
-            index  = p[13:4];
-            ready  = 1;
+        hit <= (tag[index] === inst_tag);
+        if (!hit) begin
+            tag[index]   <= inst_tag;
+            cache[index] <= inst_block;
         end
+        out <= inst;
     end
 endmodule

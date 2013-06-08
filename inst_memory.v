@@ -1,19 +1,22 @@
-module inst_memory (out, ptr);
+module inst_memory (out_block, out_inst, ptr);
 
     `include "parameters.v"
 
-    input wire [WORD_SIZE-1:0] ptr;
-    output wire [WORD_SIZE-1:0] out;
-    reg [WORD_SIZE-1:0] memory [0:MEM_SIZE-1];
+    input  wire [WORD_SIZE-1:0] ptr;
+    output wire [WORD_SIZE-1:0] out_inst;
 
+    output wire [WORD_SIZE*BLOCK_SIZE-1:0] out_block;
+            
+    reg [WORD_SIZE-1:0] memory [MEM_SIZE-1:0];
 
-    assign out = memory[ptr[7:0]];
+    wire[WORD_SIZE-5:0] p = ptr[31:4];
+    assign out_block = {  memory[p+0],memory[p+1],memory[p+2],memory[p+3],
+                    memory[p+4],memory[p+5],memory[p+6],memory[p+7],
+                    memory[p+8],memory[p+9],memory[p+10],memory[p+11],
+                    memory[p+12],memory[p+13],memory[p+14],memory[p+15]};
 
-    initial begin
-        memory[0] = 32'b0110_11101_11101_000000000010101000;
-        memory[1] = 32'b0101_11110_11101_000000000010101000;
-        memory[2] = 32'b0110_00101_11110_000000000001011100;
-        memory[3] = 32'b0110_00110_11110_000000000001110100;
-        memory[4] = 32'b0110_00111_11110_000000000010001100;
-    end
+    assign out_inst = memory[ptr];
+    
+    initial 
+        $readmemb("binary", memory);
 endmodule
