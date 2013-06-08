@@ -47,7 +47,7 @@ public class MoveI extends Quad {
 				strings.add("\tsw\t"+regNames[k0]+", "+genAddress(strings, (Const)index, dstAddrName, k1));
 			else {
 				String indexName = genBeforeUse(strings, (Temp)dstAddr, a1, a0);
-				strings.add("\tswrr\t"+regNames[k0]+", "+indexName+"("+dstAddrName+")");
+				strings.add("\tswrr\t"+regNames[k0]+", "+genAddress(dstAddrName, indexName));
 			}
 		} else {
 			assert(index == null);

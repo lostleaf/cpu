@@ -127,7 +127,7 @@ public class Temp extends Addr implements Constants {
 			} else {
 				//temp.index instanceof Temp
 				String indexName = genLoadIfNeed(strings, (Temp)temp.index, indexreg, a0);
-				strings.add("\tlwrr\t"+regNames[reg]+", "+indexName+"("+addrName+")");
+				strings.add("\tlwrr\t"+regNames[reg]+", "+Quad.genAddress(addrName, indexName));
 			}
 		} else {
 			System.out.println("test: "+temp.getRegister());
@@ -162,7 +162,7 @@ public class Temp extends Addr implements Constants {
 				strings.add("\tsw\t"+regNames[regForTemp]+", "+Quad.genAddress(strings, (Const)index, addrName, regForAddr));
 			else {
 				String indexName = genLoadIfNeed(strings, (Temp)index, regForIndex, a0);
-				strings.add("\tswrr\t"+regNames[regForTemp]+", "+indexName+"("+addrName+")");
+				strings.add("\tswrr\t"+regNames[regForTemp]+", "+Quad.genAddress(addrName, indexName));
 			}
 		} else {
 			assert(index == null); 	// addr is label or const

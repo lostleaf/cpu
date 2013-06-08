@@ -42,7 +42,7 @@ public class Move extends Quad {
 				strings.add("\tsw\t"+src+", "+genAddress(strings, (Const)index, addrName, k1));
 			} else {
 				String indexName = genBeforeUse(strings, (Temp)index, a1, a0);
-				strings.add("\tswrr\t"+src+", "+indexName+"("+addrName+")");
+				strings.add("\tswrr\t"+src+", "+genAddress(addrName, indexName));
 			}
 		} else {
 			assert(index == null);
@@ -65,7 +65,7 @@ public class Move extends Quad {
 					strings.add("\tsw\t"+srcName+", "+genAddress(strings, (Const)index, dstAddrName, k1));
 				else {
 					String indexName = genBeforeUse(strings, (Temp)index, a1,a0);
-					strings.add("\tswrr\t"+srcName+", "+indexName+"("+dstAddrName+")");
+					strings.add("\tswrr\t"+srcName+", "+genAddress(dstAddrName, indexName));
 				}
 			} else {
 				assert(index == null);

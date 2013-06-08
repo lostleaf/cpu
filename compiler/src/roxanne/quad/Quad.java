@@ -269,19 +269,15 @@ public abstract class Quad implements Constants {
 		return ans;
 	}*/
 
+	public static String genAddress(String addr, String index) {
+		return addr+", "+index;
+	}
 	public static String genAddress(LinkedList<String> strings, Const index, String addrName, int reg) {
 		if (index == null)
-			return "0("+addrName+")";
+			return addrName+", "+0;
 		
 		String constName = genBeforeUseConst(strings, new Const(-index.value), reg, ConstMode.PCOFFSET);
-		return constName+"("+addrName+")";
-		/*if (a[0] <= -index.value && -index.value <= a[1])
-			return (-index.value)+"("+addrName+")";
-		else {
-			String constName = genBeforeUseConst(strings, new Const(-index.value), reg);
-			strings.add("\tadd\t"+constName+", "+constName+", "+addrName);
-			return constName+"("+constName+")";
-		}*/
+		return addrName+", "+constName;
 	}
 	
 	public String toString() {

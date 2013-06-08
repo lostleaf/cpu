@@ -21,15 +21,15 @@ L7:
 	muli	$t6, $t2, 8
 	sub	$t6, $a3, $t6
 	muli	$t7, $t3, 4
-	lwrr	$k1, $t6, $t7
-	lwrr	$k0, $t4, $t5
+	lwrr	$k1, $t7($t6)
+	lwrr	$k0, $t5($t4)
 	mul	$t4, $k0, $k1
 	muli	$t5, $t1, 8
 	sub	$t5, $t0, $t5
 	muli	$t6, $t3, 4
-	lwrr	$k0, $t5, $t6
+	lwrr	$k0, $t6($t5)
 	add	$k0, $k0, $t4
-	swrr	$k0, $t5, $t6
+	swrr	$k0, $t6($t5)
 L8:
 	addi	$t3, $t3, 1
 	j	L7
