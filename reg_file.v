@@ -1,4 +1,4 @@
-module reg_file(get_num1, get_num2, out1, out2, get_enable, 
+module reg_file(get_num1, get_num2, get_num3, out1, out2, out3, get_enable, 
                 set_num, set_val, set_enable, reset_enable, clk);
 
     `include "parameters.v"
@@ -21,6 +21,7 @@ module reg_file(get_num1, get_num2, out1, out2, get_enable,
         end else if (get_enable) begin
             out1 <= register[get_num1];
             out2 <= register[get_num2];
+            out3 <= register[get_num3];
         end else if (set_enable) begin
             $display("reg %d set to %d", set_num, set_val);
             register[set_num] <= set_val;
