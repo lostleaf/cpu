@@ -17,7 +17,7 @@ Tomasulo Plan
 ###Reservation station
 @Posedge
 
-   - \#0.1 update busy, op
+   - \#0.1 update busy, op, RS, invalid
    - check register status to update Qk,Qj Vk,Vj 
      - if Q_j ready 
      
