@@ -1,8 +1,0 @@
-package roxanne.types;
-
-public final class CHAR extends TYPE{
-	private static CHAR instance = new CHAR();
-	private CHAR() {}
-	public static CHAR getInstance() {return instance;}
-	public CHAR actual() {return instance;}
-}

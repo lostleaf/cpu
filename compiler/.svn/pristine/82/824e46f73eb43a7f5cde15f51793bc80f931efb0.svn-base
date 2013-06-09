@@ -1,8 +1,0 @@
-package roxanne.ast;
-
-public class TypeDefName extends Type {
-	public String name;
-	public TypeDefName(String n) {
-		name = n;
-	}
-}

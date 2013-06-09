@@ -1,6 +1,0 @@
-package roxanne.types;
-
-public class WRONG extends TYPE {
-	public WRONG() { }
-	public WRONG actual() { return this; }
-}
