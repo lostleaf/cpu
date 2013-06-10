@@ -11,6 +11,11 @@ parameter ALU_ADD       = 4'h0;
 parameter ALU_SUB       = 4'h1;
 parameter ALU_MUL       = 4'h2;
 
+// for INST
+parameter OPCODE_WIDTH	= 4;
+parameter RS_START		= 27;
+parameter RD_START 		= 22;
+parameter RT_START 		= 17;
 parameter INST_ADD      = 4'h0;
 parameter INST_SUB      = 4'h1;
 parameter INST_MUL      = 4'h2;
@@ -31,12 +36,13 @@ parameter ADDER_NUM		= 3;
 parameter MULTER_NUM	= 2;	// multiplier
 parameter LOADER_NUM	= 3;
 parameter STORER_NUM	= 2;
-parameter FU_NUM		= ADDER_NUM+MULTER_NUM+LOADER_NUM+STORER_NUM;
-parameter FU_INDEX		= 4;
+parameter FU_NUM		= ADDER_NUM+MULTER_NUM+LOADER_NUM+STORER_NUM;		
+parameter FU_INDEX		= 4;	// ceiling(FU_NUM)
 parameter READY			= 15;
 
-parameter MUL_STALL		= 4;
+parameter MUL_STALL		= 3;
 
 // for Reorder Buffer
-parameter RB_SZIE		= 16;	// temporary
+parameter RB_SIZE		= 16;	// temporary
 parameter RB_INDEX		= 4;
+

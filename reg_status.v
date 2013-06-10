@@ -1,4 +1,5 @@
 `include "timescale.v"
+`include "reg_file_RX.v"
 module reg_status(get_num1, get_num2, get_num3, value1, value2, value3, status1, status2, status3,
 	 write_reg_src, write_reg_data, write_reg_enable, write_rs_src, write_rs_status, write_rs_enable, reset, clk);	// rs stands for reg_status
 	
