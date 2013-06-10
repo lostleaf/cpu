@@ -1,9 +1,9 @@
-module inst_cache (out, clk, ptr, hit);
+module inst_cache (out, clk, ptr, hit, cache_enable);
     
     `include "parameters.v"
 
-    input wire  clk;
-    output reg  hit;
+    input wire  clk, cache_enable;
+    output reg  hit = 0;
 
     output reg  [WORD_SIZE-1:0] out;
     input wire  [WORD_SIZE-1:0] ptr;
@@ -16,21 +16,26 @@ module inst_cache (out, clk, ptr, hit);
     wire  [3:0]   offset;
     wire  [9:0]   index;
     wire  [17:0]  inst_tag;
+    wire          wire_hit;
 
     reg   [WORD_SIZE*BLOCK_SIZE-1:0] cache [CACHE_SIZE-1:0];
     reg   [TAG_SIZE-1:0]  tag  [CACHE_SIZE-1:0];
     
-
+    
     assign offset   = ptr[3:0];
     assign index    = ptr[13:4];
     assign inst_tag = ptr[31:14];
+    assign wire_hit = (tag[index] === inst_tag);
 
     always @(posedge clk) begin
-        hit <= (tag[index] === inst_tag);
-        if (!hit) begin
-            tag[index]   <= inst_tag;
-            cache[index] <= inst_block;
+        if (cache_enable) begin
+            hit <= wire_hit;
+            if (!wire_hit) begin
+                // $display("%d %d %d %d", ptr, index, tag[index], inst_tag);
+                tag[index]   <= inst_tag;
+                cache[index] <= inst_block;
+            end
+            out <= inst;
         end
-        out <= inst;
     end
 endmodule

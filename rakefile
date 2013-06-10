@@ -2,7 +2,7 @@ namespace :test do
 
     desc "clear all testbench executables"
     task :clear do
-        rm Dir["test*"]
+        rm Dir["test_*"]
     end
 
     desc 'test alu'
@@ -23,7 +23,8 @@ namespace :test do
 
     desc "test instruction cache"
     task :inst_cache => [:clear] do
-        test(['testbench/inst_cache_tb.v', 'inst_memory.v', 'inst_cache.v'], 'test_inst_cache')
+        test(['testbench/inst_cache_tb.v', 'inst_memory.v', 'inst_cache.v'], 
+            'test_inst_cache')
     end
 
     desc "test register file"   
@@ -34,6 +35,12 @@ namespace :test do
     desc "test register status"
     task :reg_status => [:clear] do
         test(['testbench/regstatus_tb.v', 'reg_status.v'], 'test_reg_status')
+    end
+
+    desc "test instructipn fetch"
+    task :inst_fetch => [:clear] do
+        test(['testbench/inst_fetch_tb.v', 'inst_fetch.v','inst_memory.v', 
+            'inst_cache.v'], 'test_inst_fetch')
     end
 
     def test(inputs, output)
