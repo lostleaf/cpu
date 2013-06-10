@@ -1,8 +1,0 @@
-package roxanne.types;
-
-public final class INT extends TYPE{
-	private static INT instance = new INT();
-	private INT() {}
-	public static INT getInstance() {return instance;}
-	public INT actual() { return instance; }
-}

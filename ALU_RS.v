@@ -136,17 +136,3 @@ module ALU_RS(fu, RB_index, inst, vj, vk, qj, qk,
 		end
 	endfunction
 
-	task checkAndGetData;
-		input [RB_INDEX-1:0]  Q;
-		output[WORD_SIZE-1:0] V;		// ??
-		input [WORD_SIZE*RB_SIZE-1:0] CDB_data_data;
-		input [RB_SIZE-1:0] 		  CDB_data_valid;
-		output ok;
-		begin
-			if (readValidBus(CDB_data_valid, Q)) begin
-				V = readDataBus(CDB_data_data, Q);
-			end else ok = 1'b0;
-		end
-	endtask
-
-endmodule
