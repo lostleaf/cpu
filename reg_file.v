@@ -24,7 +24,7 @@
                 register[i] <= 0;
             end
         end else if (set_enable) begin
-            $display("reg %d set to %d", set_num, set_val);
+            // $display("reg %d set to %d", set_num, set_val);
             register[set_num] <= set_val;
         end
     end

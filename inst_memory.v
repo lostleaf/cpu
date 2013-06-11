@@ -19,7 +19,8 @@ module inst_memory (out_block, out_inst, ptr);
 
     assign out_inst = memory[ptr];
     
-    initial begin
+    initial begin:init
+        reg[WORD_SIZE-1:0] i;
         for(i = 0; i < MEM_SIZE; i = i + 1)
             data[i] = 32'h0;
         $readmemb("code.bin", memory);
