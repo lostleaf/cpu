@@ -9,16 +9,18 @@ module inst_memory (out_block, out_inst, ptr);
             
     reg [WORD_SIZE-1:0] memory [MEM_SIZE-1:0];
 
-    wire[WORD_SIZE-1:0] p = {ptr[31:4], 4'b0};
-    assign out_block = {  memory[p+0],memory[p+1],memory[p+2],memory[p+3],
-                    memory[p+4],memory[p+5],memory[p+6],memory[p+7],
-                    memory[p+8],memory[p+9],memory[p+10],memory[p+11],
-                    memory[p+12],memory[p+13],memory[p+14],memory[p+15]};
+    wire[WORD_SIZE-1:0] ptr_block = {ptr[31:4], 4'b0};
+    assign out_block = {  memory[ptr_block+0],memory[ptr_block+1],memory[ptr_block+2],
+                        memory[ptr_block+3],memory[ptr_block+4],memory[ptr_block+5],
+                        memory[ptr_block+6],memory[ptr_block+7],memory[ptr_block+8],
+                        memory[ptr_block+9],memory[ptr_block+10],memory[ptr_block+11],
+                        memory[ptr_block+12],memory[ptr_block+13],memory[ptr_block+14],
+                        memory[ptr_block+15]};
 
     assign out_inst = memory[ptr];
     
     initial begin
         $readmemb("binary", memory);
-        // $monitor("ptr = %h, p = %h", ptr, p);
+        // $monitor("ptr = %h, ptr_block = %h", ptr, p);
     end
 endmodule
