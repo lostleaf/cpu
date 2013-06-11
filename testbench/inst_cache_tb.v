@@ -11,9 +11,9 @@ module inst_cache_testbench;
     wire [WORD_SIZE-1:0] test_data [0:7];
 
     assign test_data[0] = 32'd1;
-    assign test_data[1] = 32'd33;
-    assign test_data[2] = 32'd20;
-    assign test_data[3] = 32'd4;
+    assign test_data[1] = 32'd21;
+    assign test_data[2] = 32'd33;
+    assign test_data[3] = 32'd20;
     assign test_data[4] = 32'd4;
 
 
@@ -21,9 +21,10 @@ module inst_cache_testbench;
 
     reg [31:0] num = 0;
     always @(negedge clk) begin
-        $display("%d", num);
+        $display("%d %h %b", ptr, out, hit);
         if (num == 20) $finish;
         num <= num + 1;
+
     end
 
 endmodule

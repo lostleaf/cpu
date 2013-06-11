@@ -16,7 +16,6 @@ module inst_cache (out, clk, ptr, hit, cache_enable);
     wire  [3:0]   offset;
     wire  [9:0]   index;
     wire  [17:0]  inst_tag;
-    wire          wire_hit;
 
     reg   [WORD_SIZE*BLOCK_SIZE-1:0] cache [CACHE_SIZE-1:0];
     reg   [TAG_SIZE-1:0]  tag  [CACHE_SIZE-1:0];
@@ -25,17 +24,18 @@ module inst_cache (out, clk, ptr, hit, cache_enable);
     assign offset   = ptr[3:0];
     assign index    = ptr[13:4];
     assign inst_tag = ptr[31:14];
-    assign wire_hit = (tag[index] === inst_tag);
 
     always @(posedge clk) begin
         if (cache_enable) begin
-            hit <= wire_hit;
-            if (!wire_hit) begin
-                // $display("%d %d %d %d", ptr, index, tag[index], inst_tag);
+            if (tag[index] === inst_tag) begin
+                hit <= 1'b1;
+                out <= inst;
+            end else begin
+                hit <= 1'b0;
                 tag[index]   <= inst_tag;
                 cache[index] <= inst_block;
+                out <= inst;
             end
-            out <= inst;
         end
     end
 endmodule
