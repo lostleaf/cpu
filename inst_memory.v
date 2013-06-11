@@ -20,7 +20,8 @@ module inst_memory (out_block, out_inst, ptr);
     assign out_inst = memory[ptr];
     
     initial begin
-        $readmemb("binary", memory);
-        // $monitor("ptr = %h, ptr_block = %h", ptr, p);
+        for(i = 0; i < MEM_SIZE; i = i + 1)
+            data[i] = 32'h0;
+        $readmemb("code.bin", memory);
     end
 endmodule

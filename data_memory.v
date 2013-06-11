@@ -30,5 +30,4 @@ module data_memory (ptr, val, out_data, out_block, clk, read_enable, write_enabl
             memory[ptr] = val;
         end
     end
-
 endmodule
