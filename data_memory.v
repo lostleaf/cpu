@@ -22,7 +22,7 @@ module data_memory (ptr, val, out_data, out_block, clk, read_enable, write_enabl
     initial begin
         for(i = 0; i < MEM_SIZE; i = i + 1)
             data[i] = 32'h0;
-        $readmemh("ram_data.txt", data);
+        $readmemh("ram_data.hex", data);
     end
 
     always @(posedge clk) begin
