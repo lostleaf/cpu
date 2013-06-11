@@ -17,7 +17,6 @@ module inst_fetch(out, ptr, clk, fetch_enable, busy);
 
     always @(posedge clk) begin
         #1;
-        $display("time = %t, hit = %b, ptr = %d", $time, hit, ptr);
         if (fetch_enable) begin
             // busy = 1;
             // if (!hit) begin
@@ -26,7 +25,10 @@ module inst_fetch(out, ptr, clk, fetch_enable, busy);
             //     out = inst;
             // end
             // busy = 0;
-            out = inst;
+            if (!hit) begin
+                $display("miss");
+            end
+            out <= inst;
         end
     end
 

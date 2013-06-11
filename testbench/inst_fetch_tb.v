@@ -32,11 +32,11 @@ module inst_fetch_testbench ;
 
     always @(negedge clk) begin
         num <= num + 1;
-        if (num >= total) $finish;
+        if (num > total) $finish;
     end
 
-    // initial 
-    //     $monitor("time = %t, ptr = %d, inst = %h(%b), busy = %b, fetch_enable = %b", 
-    //         $time, ptr, inst, inst, busy, fetch_enable);
+     initial 
+         $monitor("time = %t, ptr = %d, inst = %h(%b), busy = %b, fetch_enable = %b", 
+             $time, ptr, inst, inst, busy, fetch_enable);
 
 endmodule
