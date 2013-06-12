@@ -1,12 +1,13 @@
-module data_memory (ptr, val, out_data, out_block, clk, write_enable);
+module data_memory (ptr, in_block, out_data, out_block, clk, write_enable);
     
     `include "parameters.v"
 
-    input  wire [WORD_SIZE-1:0] ptr, val;
-    input  wire clk, write_enable;
+    input  wire [WORD_SIZE-1:0]             ptr;
+    input  wire [BLOCK_SIZE*WORD_SIZE-1:0]  in_block;
+    input  wire                             clk, write_enable;
 
-    output wire [WORD_SIZE-1:0] out_data;
-    output wire [BLOCK_SIZE*WORD_SIZE-1:0] out_block;
+    output wire [WORD_SIZE-1:0]             out_data;
+    output wire [BLOCK_SIZE*WORD_SIZE-1:0]  out_block;
 
     reg [WORD_SIZE-1:0] memory [0:MEM_SIZE-1];
 
@@ -28,7 +29,12 @@ module data_memory (ptr, val, out_data, out_block, clk, write_enable);
 
     always @(posedge clk) begin
         if (write_enable) begin
-            memory[ptr] = val;
+            {memory[ptr_block+0],memory[ptr_block+1],memory[ptr_block+2],
+            memory[ptr_block+3],memory[ptr_block+4],memory[ptr_block+5],
+            memory[ptr_block+6],memory[ptr_block+7],memory[ptr_block+8],
+            memory[ptr_block+9],memory[ptr_block+10],memory[ptr_block+11],
+            memory[ptr_block+12],memory[ptr_block+13],memory[ptr_block+14],
+            memory[ptr_block+15]} = in_block;
         end
     end
 endmodule

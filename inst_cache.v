@@ -17,9 +17,8 @@ module inst_cache (out, clk, ptr, hit, cache_enable);
     wire  [9:0]   index;
     wire  [17:0]  inst_tag;
 
-    reg   [WORD_SIZE*BLOCK_SIZE-1:0] cache [CACHE_SIZE-1:0];
-    reg   [TAG_SIZE-1:0]  tag  [CACHE_SIZE-1:0];
-    
+    reg   [WORD_SIZE*BLOCK_SIZE-1:0]    cache [CACHE_SIZE-1:0];
+    reg   [TAG_SIZE-1:0]                tag   [CACHE_SIZE-1:0];
     
     assign offset   = ptr[3:0];
     assign index    = ptr[13:4];
