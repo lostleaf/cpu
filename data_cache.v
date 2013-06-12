@@ -1,11 +1,11 @@
 // use write back policy
 // if miss, save dirty cache, load new block
-module datacache(ptr, val, out, read_enable, write_enable, clk, hit);
+module data_cache(ptr, val, out, read_enable, write_enable, clk, hit);
 
     `include "parameters.v"
 
     input  wire                 read_enable, write_enable, clk;
-    input  wire [WORD_SIZE-1:0] ptr;
+    input  wire [WORD_SIZE-1:0] ptr, val;
 
     output reg  [WORD_SIZE-1:0] out;
     output reg                  hit = 0;
@@ -35,7 +35,7 @@ module datacache(ptr, val, out, read_enable, write_enable, clk, hit);
         for(i = 0; i < CACHE_SIZE; i = i + 1) begin
             valid[i] = 1'b0;
             dirty[i] = 1'b0;
-            tag[i]   = TAG_SIZE'b0;
+            tag[i]   = 18'b0;
         end
     end
 
@@ -61,10 +61,10 @@ module datacache(ptr, val, out, read_enable, write_enable, clk, hit);
                 //write back
                 if (dirty[index] && valid[index]) begin
                     in_mem_block  = cache[index];
-                    mwirte_enable = 1'b1;
+                    mwrite_enable = 1'b1;
                 end
                 #1; // necessory?
-                mwirte_enable = 1'b0;
+                mwrite_enable = 1'b0;
                 dirty[index]  = 0;
                 valid[index]  = 1;
                 cache[index]  = 
@@ -85,13 +85,14 @@ module datacache(ptr, val, out, read_enable, write_enable, clk, hit);
             end else begin
                 hit = 0;
                 //write back
+                $display($time);
                 if (dirty[index] && valid[index]) begin
                     in_mem_block  = cache[index];
-                    mwirte_enable = 1'b1;
+                    mwrite_enable = 1'b1;
                     #1; // necessory?
-                    mwirte_enable = 1'b0;
-                    cache[index]  = out_mem_block; 
+                    mwrite_enable = 1'b0;
                 end
+                cache[index]  = out_mem_block; 
                 dirty[index]  = 0;
                 valid[index]  = 1;
                 out = cache[index] >> ((15 - offset) * WORD_SIZE) & 32'hffffffff;               

@@ -48,8 +48,15 @@ namespace :test do
         test(['testbench/data_memory_tb.v', 'data_memory.v'], 'test_data_memory')
     end
 
+    desc "test data cache"
+    task :data_cache => [:clear] do
+        test(['testbench/data_cache_tb.v', 'data_memory.v', 'data_cache.v'],
+            'test_data_cache')
+    end
+
     def test(inputs, output)
         puts `iverilog #{inputs.join(' ')} -o #{output}`
+        return unless $? == 0
         vvp_pid = Process.spawn("vvp #{output}")
         trap("INT") {
             Process.kill(9, vvp_pid) rescue Errno::ESRCH 
