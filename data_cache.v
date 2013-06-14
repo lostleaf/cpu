@@ -59,7 +59,7 @@ module data_cache(ptr_read1,    ptr_read2,    ptr_read3,
     always @(posedge clk) begin
         if (write_enable) begin
             if (tag[index_w] == data_tag_w && valid[index_w]) begin 
-                hit            = 1;
+                hit_write      = 1;
                 dirty[index_w] = 1;
                 valid[index_w] = 1;
                 cache[index_w] = 
@@ -69,7 +69,7 @@ module data_cache(ptr_read1,    ptr_read2,    ptr_read3,
                         << ((15 - offset_w) * WORD_SIZE)
                     ) ^ cache[index_w];
             end else begin
-                hit = 0;
+                hit_write = 0;
                 //write back
                 if (dirty[index_w] && valid[index_w]) begin
                     in_mem_block  = cache[index_w];
@@ -92,13 +92,13 @@ module data_cache(ptr_read1,    ptr_read2,    ptr_read3,
         if (read_enable1 || read_enable2 || read_enable3) begin
             if (read_enable1)
                 read_data(dirty[index_r1], valid[index_r1], tag[index_r1], 
-                            data_tag_r1, cache[index_r1], offset_r1);
+                        data_tag_r1, cache[index_r1], offset_r1, hit_read1, out1);
             if (read_enable2)
                 read_data(dirty[index_r2], valid[index_r2], tag[index_r2], 
-                            data_tag_r2, cache[index_r2], offset_r2);
+                        data_tag_r2, cache[index_r2], offset_r2, hit_read2, out2);
             if (read_enable3)
                 read_data(dirty[index_r3], valid[index_r3], tag[index_r3], 
-                            data_tag_r3, cache[index_r3], offset_r3);
+                        data_tag_r3, cache[index_r3], offset_r3, hit_read3, out3);
         end
     end
 
@@ -108,6 +108,8 @@ module data_cache(ptr_read1,    ptr_read2,    ptr_read3,
         input [TAG_SIZE-1:0] data_tag;
         inout [BLOCK_SIZE*WORD_SIZE-1:0] cache;
         input [3:0] offset;
+        output hit;
+        output [WORD_SIZE-1:0] out;
         begin
             if (tag == data_tag && valid) begin 
                 hit = 1;

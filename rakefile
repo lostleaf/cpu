@@ -15,6 +15,15 @@ namespace :test do
         test(['testbench/pointer_tb.v', 'pointer.v'], 'test_pointer')
     end
 
+    desc "test data cache"
+    task :data_cache => [:clear] do
+        test(['testbench/data_cache_tb.v', 'data_cache.v', 'data_memory.v'], 'test_data_cache')
+    end
+
+    desc "test data memory"
+    task :data_memory => [:clear] do
+        test(['testbench/data_memory_tb.v', 'data_memory.v'], 'test_data_memory')
+    end
 
     desc "test instruction memory"
     task :inst_memory => [:clear] do
