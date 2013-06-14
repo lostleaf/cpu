@@ -16,7 +16,8 @@ parameter OPCODE_WIDTH  = 4;
 parameter RS_START      = 27;
 parameter RD_START      = 22;
 parameter RT_START      = 17;
-parameter IMM_START	= 17;
+parameter IMM_START		= 17;
+parameter J_PCOFFSET_START = 27;
 parameter INST_ADD      = 4'h0;
 parameter INST_SUB      = 4'h1;
 parameter INST_MUL      = 4'h2;
@@ -25,8 +26,8 @@ parameter INST_SW       = 4'h4;
 parameter INST_ADDI     = 4'h5;
 parameter INST_SUBI     = 4'h6;
 parameter INST_MULI     = 4'h7;
-parameter INST_LWRR      = 4'h8;
-parameter INST_SWRR      = 4'h9;
+parameter INST_LWRR     = 4'h8;
+parameter INST_SWRR     = 4'h9;
 parameter INST_LI       = 4'ha;
 parameter INST_J        = 4'hb;
 parameter INST_JR       = 4'hc;
@@ -41,6 +42,7 @@ parameter FU_NUM        = ADDER_NUM+MULTER_NUM+LOADER_NUM+STORER_NUM;
 parameter FU_INDEX      = 4;    // ceiling(FU_NUM)
 
 parameter MUL_STALL     = 3;
+parameter MEM_STALL		= 100;
 
 // for Reorder Buffer
 parameter RB_SIZE		= 15;	// temporary

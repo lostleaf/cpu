@@ -5,7 +5,7 @@
 `include "def_param.v"
 `include "reg_status.v"
 `include "CDB_data_controller.v"
-
+`include "reorder_buffer.v"
 module CPU;
 	`include "parameters.v"
 
@@ -37,10 +37,10 @@ module CPU;
 
 	// not done
 	// for reg
-	reg we_reg, we_status;
-	reg[REG_INDEX-1:0]	ws_reg, ws_status;
-	reg[WORD_SIZE-1:0]	wd_reg;
-	reg[RB_INDEX-1:0]	wd_status;
+	wire we_reg, we_status;
+	wire[REG_INDEX-1:0]	ws_reg, ws_status;
+	wire[WORD_SIZE-1:0]	wd_reg;
+	wire[RB_INDEX-1:0]	wd_status;
 	// for CDB_inst
 	reg[FU_INDEX-1:0]	fu;
 	wire[WORD_SIZE-1:0]	inst;
@@ -52,6 +52,11 @@ module CPU;
 
 	// within RB
 	reg[FU_INDEX-1:0]	RB_wt_by_FU[RB_SIZE-1:0];		//RB entry written by FU
+
+	// from reorder buffer to datacache
+	wire we_dcache;
+	wire[WORD_SIZE-1:0]	wd_dcache;
+	wire[WORD_SIZE-1:0]	ws_dcache;
 
 	reg_status status(.get_num1(numi), .get_num2(numj), .get_num3(numk), .value1(vi), .value2(vj), .value3(vk), 
 		.status1(qi), .status2(qj), .status3(qk),
@@ -74,9 +79,13 @@ module CPU;
 		.data_bus(FU_data_bus), .valid_bus(FU_valid_bus), .addr_bus(FU_addr_bus),
 		.RB_index_bus(FU_RB_index_bus), .reset(reset), .clk(clk));
 
-	
-
-
+	reorder_buffer RB(.CDB_data_data(CDB_data_data), .CDB_data_valid(CDB_data_valid), .CDB_data_addr(CDB_data_addr), 
+		.busy(busy), .we_reg(we_reg), .wd_reg(wd_reg), .ws_reg(ws_reg), 
+		.we_mem(we_dcache), .wd_mem(wd_dcache), .ws_mem(ws_dcache), .numj(numj), .numk(numk),
+		.vj(vj), .vk(vk), .qj(qj), .qk(qk), 
+		.CDB_inst_fu(CDB_inst_fu), .CDB_inst_inst(CDB_inst_inst), .CDB_inst_RBindex(CDB_inst_RBindex), 
+		.Rdest_status(ws_status), .RB_index_status(wd_status), .we_status(we_status),
+		.reset(reset), .clk(clk));
 
 	always begin
 		#0.5 clk = 0;
@@ -96,10 +105,10 @@ module CPU;
 		$dumpfile("CPU2.vcd");
 		$dumpvars;
 
-		$monitor("%g: CDB: 0:<v:%b, d:%h, a:%h>, 1:<v:%b, d:%h, a:%h>, busy: 0:%g, 1:%g",
+		/*$monitor("%g: CDB: 0:<v:%b, d:%h, a:%h>, 1:<v:%b, d:%h, a:%h>, busy: 0:%g, 1:%g",
 			$realtime,CDB_data_valid[0], CDB_data_data[WORD_SIZE-1:0], CDB_data_addr[WORD_SIZE-1:0], 
 			CDB_data_valid[1], CDB_data_data[2*WORD_SIZE-1:WORD_SIZE], CDB_data_addr[2*WORD_SIZE-1:WORD_SIZE],
-			busy[8], busy[9]);
+			busy[8], busy[9]);*/
 		
 		op = INST_ADDI;
 		reset = 1;
@@ -109,7 +118,7 @@ module CPU;
 		end
 		#1 reset = 0;
 		//init reg
-		for (i = 0; i < REG_FILE_SIZE; i = i+1) begin
+		/*for (i = 0; i < REG_FILE_SIZE; i = i+1) begin
 			#1 	 we_reg = 1'b1;
 				 ws_reg = i;
 				 wd_reg = i;
@@ -126,7 +135,7 @@ module CPU;
 				rt = rt+1;
 
 			#1 begin end
-		end
+		end*/
 
 		/*#1for (i = 5'b0; i < STORER_NUM; i = i+1) begin
 			    fu = FU_NUM-STORER_NUM+i;
@@ -140,7 +149,7 @@ module CPU;
 		*/
 		#1 fu = 4'd15;
 
-		#5 $finish;
+		#200 $finish;
 	end
 
 	task setWriteBy;
