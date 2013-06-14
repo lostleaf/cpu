@@ -1,7 +1,5 @@
-    .text
-    .globl main
 main:
-    subi    $sp, $sp, 164
+    #subi    $sp, $sp, 164
     addi    $fp, $sp, 164
     subi    $a2, $fp, 88
     subi    $a3, $fp, 112
@@ -43,8 +41,3 @@ L2:
     j   L1
 L0:
     li  $v0, 0
-
-
-
-    .data 0x10000000
-

@@ -51,7 +51,7 @@ class Assembler
             when 13         #bge
                 @output.puts "%04b_%05b_%010b_%013b" % [inst_code, *opsc[0..1], @label_map[opsc[2]]]
             end
-            #@output.puts "\# #{inst_ori}"
+            # @output.puts "\# #{inst_ori}"
         end
     end
 
