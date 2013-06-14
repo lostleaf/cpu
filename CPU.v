@@ -20,9 +20,9 @@ module CPU;
 	wire[FU_NUM*RB_INDEX-1:0]	FU_RB_index_bus;
 
 	//CDB_inst 1 lane
-	wire[FU_INDEX-1:0]	CDB_inst_fu;
-	wire[WORD_SIZE-1:0]	CDB_inst_inst;
-	wire[RB_INDEX-1:0]	CDB_inst_RBindex;
+	wire[FU_INDEX-1:0]	CDB_inst_fu = 'bz;
+	wire[WORD_SIZE-1:0]	CDB_inst_inst = 'bz;
+	wire[RB_INDEX-1:0]	CDB_inst_RBindex = 'bz;
 
 	wire[WORD_SIZE-1:0] vi, vj, vk;
 	wire[RB_INDEX-1:0]	qi, qj, qk;
@@ -92,11 +92,6 @@ module CPU;
 		#0.5 clk = 1;
 	end
 
-	// not done
-	assign CDB_inst_fu = fu;
-	assign CDB_inst_inst = inst;
-	assign CDB_inst_RBindex = RBindex;
-	assign inst = {op, rs, rd, rt, 13'b0};
 
 	// for test
 	always begin:test
@@ -105,17 +100,16 @@ module CPU;
 		$dumpfile("CPU2.vcd");
 		$dumpvars;
 
-		/*$monitor("%g: CDB: 0:<v:%b, d:%h, a:%h>, 1:<v:%b, d:%h, a:%h>, busy: 0:%g, 1:%g",
-			$realtime,CDB_data_valid[0], CDB_data_data[WORD_SIZE-1:0], CDB_data_addr[WORD_SIZE-1:0], 
-			CDB_data_valid[1], CDB_data_data[2*WORD_SIZE-1:WORD_SIZE], CDB_data_addr[2*WORD_SIZE-1:WORD_SIZE],
-			busy[8], busy[9]);*/
+		$monitor("%g: CDB: 1:<v:%b, d:%g, a:%g>, 2:<v:%b, d:%g, a:%g>, busy: 0:%g, 1:%g",
+			$realtime,
+			CDB_data_valid[1], CDB_data_data[2*WORD_SIZE-1:WORD_SIZE], CDB_data_addr[2*WORD_SIZE-1:WORD_SIZE], 
+			CDB_data_valid[2], CDB_data_data[3*WORD_SIZE-1:2*WORD_SIZE], CDB_data_addr[3*WORD_SIZE-1:2*WORD_SIZE],
+			busy[0], busy[1]);
+
+		/*$monitor($realtime, "inst:%b, fu:%d, RB_index = %d", 
+			CDB_inst_inst, CDB_inst_fu, CDB_inst_RBindex);*/
 		
-		op = INST_ADDI;
 		reset = 1;
-		write = 0;
-		for (i = 0; i < RB_SIZE; i = i+1) begin
-			RB_wt_by_FU[i] = NULL;
-		end
 		#1 reset = 0;
 		//init reg
 		/*for (i = 0; i < REG_FILE_SIZE; i = i+1) begin
@@ -147,9 +141,8 @@ module CPU;
 			#1 begin end
 		end
 		*/
-		#1 fu = 4'd15;
 
-		#200 $finish;
+		#110 $finish;
 	end
 
 	task setWriteBy;

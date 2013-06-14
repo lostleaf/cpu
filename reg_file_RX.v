@@ -17,14 +17,17 @@
     assign out2 = register[get_num2];
     assign out3 = register[get_num3];
 
+    // for test
+    initial begin
+        
+    end
+
     always @(negedge clk or posedge reset_enable) begin
-        //$display("%g: out1 = %g out2 = %g, out3 = %g", $realtime, out1, out2, out3);
         if (reset_enable) begin
             for (i = 0; i < REG_FILE_SIZE; i = i+1) begin
                 register[i] <= 0;
             end
         end else if (set_enable) begin
-            //$display("%g: reg %d set to %d", $realtime, set_num, set_val);
             register[set_num] <= set_val;
         end
     end
