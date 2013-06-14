@@ -1,3 +1,4 @@
+`include "inst_memory.v"
 module inst_cache (out, clk, ptr, hit, cache_enable);
     
     `include "parameters.v"
@@ -26,7 +27,7 @@ module inst_cache (out, clk, ptr, hit, cache_enable);
 
     always @(posedge clk) begin
         if (cache_enable) begin
-            if (tag[index] === inst_tag) begin
+            #0.1 if (tag[index] === inst_tag) begin
                 hit <= 1'b1;
                 out <= inst;
             end else begin
