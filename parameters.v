@@ -40,6 +40,10 @@ parameter LOADER_NUM    = 3;
 parameter STORER_NUM    = 2;
 parameter FU_NUM        = ADDER_NUM+MULTER_NUM+LOADER_NUM+STORER_NUM;       
 parameter FU_INDEX      = 4;    // ceiling(FU_NUM)
+parameter ADDER_START	= 0;
+parameter MULTER_START	= ADDER_NUM;
+parameter STORER_START	= MULTER_START+MULTER_NUM;
+parameter LOADER_START	= FU_NUM-LOADER_NUM;
 
 parameter MUL_STALL     = 3;
 parameter MEM_STALL		= 100;

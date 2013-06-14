@@ -29,16 +29,17 @@ back->
 ##2 ISSUE
 ###Reorder Buffer
 	@posedge
-		if (tail+1) has instr
-			if (branch && jump)
+		if (tail+1) has instr			// if (valid[tail+1])
+			if (branch || jump)
 				set PC to RB[tail]+PCOFFSET
 			else
 				issue if can
 				++tail
-	@negedge
-		if head has instr
-			write
+	@posedge
+		if head has instr			// <=> not empty <=> front != tail or valid[front+1]
+			write				// all write is done at negedge
 			++head;
+		set the newly issued instr's FU write_enable
 
 ####issue if can
 

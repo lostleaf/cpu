@@ -77,7 +77,20 @@ module reorder_buffer(CDB_data_data, CDB_data_valid, CDB_data_addr, busy,
 	end
 
 	always @(posedge clk) begin:issue
-		
+		if (RB_valid[inc(tail)]) begin
+			tail = inc(tail);
+			//ignore brach so far
+			if (RB_inst[tail][WORD_SIZE-1:WORD_SIZE-OPCODE_WIDTH] == INST_BGE) begin
+				
+			end
+			else begin:issueIfCan
+				reg free = 1'b1;
+				reg[WORD_SIZE-1:0] 	i;
+				reg[FU_INDEX-1:0]	fu;
+				case(RB_inst[tail][WORD_SIZE-1:WORD_SIZE-OPCODE_WIDTH])
+			end
+		end
+		else begin end
 	end
 	
 
