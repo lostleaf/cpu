@@ -1,6 +1,6 @@
 namespace :test do
 
-    desc "clear all testbench executables"
+    desc "clear all teshbench executables"
     task :clear do
         rm Dir["test_*"]
     end
@@ -23,40 +23,26 @@ namespace :test do
 
     desc "test instruction cache"
     task :inst_cache => [:clear] do
-        test(['testbench/inst_cache_tb.v', 'inst_memory.v', 'inst_cache.v'], 
-            'test_inst_cache')
+        test(['testbench/inst_cache_tb.v', 'inst_memory.v', 'inst_cache.v'], 'test_inst_cache')
     end
 
-    desc "test register file"   
-    task :reg_file => [:clear] do
-        test(['testbench/reg_file_tb.v', 'reg_file.v'], 'test_reg_file')
+    desc "test CPU"
+    task :CPU => [:clear] do
+        test(['CPU.v'], 'test_CPU')
     end
 
-    desc "test register status"
-    task :reg_status => [:clear] do
-        test(['testbench/regstatus_tb.v', 'reg_status.v'], 'test_reg_status')
+    desc "test CPU2"
+    task :CPU2 => [:clear] do
+        test(['CPU2.v'], 'test_CPU2')
     end
 
-    desc "test instructipn fetch"
-    task :inst_fetch => [:clear] do
-        test(['testbench/inst_fetch_tb.v', 'inst_fetch.v','inst_memory.v', 
-            'inst_cache.v'], 'test_inst_fetch')
-    end
-
-    desc "test data memory"
-    task :data_memory => [:clear] do
-        test(['testbench/data_memory_tb.v', 'data_memory.v'], 'test_data_memory')
-    end
-
-    desc "test data cache"
-    task :data_cache => [:clear] do
-        test(['testbench/data_cache_tb.v', 'data_memory.v', 'data_cache.v'],
-            'test_data_cache')
+    desc "test test"
+    task :test => [:clear] do
+        test(['test.v'], 'test_test')
     end
 
     def test(inputs, output)
         puts `iverilog #{inputs.join(' ')} -o #{output}`
-        return unless $? == 0
         vvp_pid = Process.spawn("vvp #{output}")
         trap("INT") {
             Process.kill(9, vvp_pid) rescue Errno::ESRCH 

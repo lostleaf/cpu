@@ -1,9 +1,9 @@
-module ALU_RS(fu, RB_index, inst, vj, vk, qj, qk, 					
-	reg_numj, reg_numk, busy_out, CDB_data_data, CDB_data_valid, 
-	data_bus, valid_bus, RB_index_bus, reset, clk);
+module store_RS(fu, RB_index, inst,vi, vj, vk, qi, qj, qk, 					
+	reg_numi, reg_numj, reg_numk, busy_out, CDB_data_data, CDB_data_valid,
+	data_bus, valid_bus, addr_bus, RB_index_bus, reset, clk);
 
 	`include "parameters.v"
-	parameter fuindex = 0;		
+	parameter fuindex = 0, StorerIndex = 0;		
 	// it's op depends on the design outside on which fuindex corresponds to which op, 
 	//and the info is in the <"fu", RB_index, "inst">
 
@@ -14,30 +14,33 @@ module ALU_RS(fu, RB_index, inst, vj, vk, qj, qk,
 	//from CDB_data
 	input	wire[WORD_SIZE*RB_SIZE-1:0]	CDB_data_data;
 	input 	wire[RB_SIZE-1:0]			CDB_data_valid;
+			
 	output	wire[FU_NUM*WORD_SIZE-1:0]	data_bus;
 	output	wire[FU_NUM-1:0]			valid_bus;
+	output	wire[STORER_NUM*WORD_SIZE-1:0]	addr_bus;
 	output	wire[FU_NUM*RB_INDEX-1:0]		RB_index_bus;
 	
 
-	input	wire[WORD_SIZE-1:0]	vj, vk;
-	input	wire[RB_INDEX-1:0]	qj, qk; 
-	output	reg [REG_INDEX-1:0]	reg_numj = 'bz, reg_numk = 'bz;
+	input	wire[WORD_SIZE-1:0]	vi, vj, vk;
+	input	wire[RB_INDEX-1:0]	qi, qj, qk; 
+	output	reg [REG_INDEX-1:0]	reg_numi = 'bz, reg_numj = 'bz, reg_numk = 'bz;
 	// from RB
 
 	input	wire				reset, clk;
 	output	wire[FU_NUM-1:0]	busy_out;
 	
-	reg[WORD_SIZE-1:0]	Vj, Vk;
-	reg[RB_INDEX-1:0]	Qj, Qk;
+	reg[WORD_SIZE-1:0]	Vi, Vj, Vk;
+	reg[RB_INDEX-1:0]	Qi, Qj, Qk;
 	reg[RB_INDEX-1:0]	dest;	
 	reg[OPCODE_WIDTH-1:0]	op;
 	reg busy;
-	reg[WORD_SIZE-1:0]	result;
+	reg[WORD_SIZE-1:0]	result = 'b0, data = 'b0;
 	reg valid;
 	
 	assign busy_out[fuindex:fuindex] = busy;
-	assign data_bus[(fuindex+1)*WORD_SIZE-1: fuindex*WORD_SIZE] = result;
+	assign addr_bus[(StorerIndex+1)*WORD_SIZE-1: StorerIndex*WORD_SIZE] = result;
 	assign valid_bus[fuindex: fuindex] = valid;
+	assign data_bus[(fuindex+1)*WORD_SIZE-1:fuindex*WORD_SIZE] = data;
 	assign RB_index_bus[(fuindex+1)*RB_INDEX-1:fuindex*RB_INDEX] = dest;
 
 	always @(posedge clk or posedge reset) begin
@@ -49,23 +52,29 @@ module ALU_RS(fu, RB_index, inst, vj, vk, qj, qk,
 		end else if (!busy) begin: checkIssue
 				#0.1 if (fu == fuindex) begin
 						$display($realtime, ": %d receive inst:%b", fuindex, inst);
-						op = inst[WORD_SIZE-1:WORD_SIZE-OPCODE_WIDTH];
 						busy  <= 1'b1;
 						dest  <= RB_index;
+						op = inst[WORD_SIZE-1:WORD_SIZE-OPCODE_WIDTH];
+
+						reg_numi = inst[RD_START: RD_START-REG_INDEX+1];
 						reg_numj = inst[RS_START: RS_START-REG_INDEX+1];
-						getData(vj, qj, Vj, Qj,CDB_data_data, CDB_data_valid);
-						if (op == INST_ADD || op == INST_SUB || op == INST_MUL) begin
+						getData(vi, qi, Vi, Qi, CDB_data_data, CDB_data_valid);
+						getData(vj, qj, Vj, Qj, CDB_data_data, CDB_data_valid);
+						if (op === INST_SWRR) begin
 							reg_numk = inst[RT_START: RT_START-REG_INDEX+1];
 							getData(vk, qk, Vk, Qk, CDB_data_data, CDB_data_valid);
 						end
-						else begin 
+						else begin
 							Vk = inst[IMM_START:0];
 							Qk = READY;
 						end
-						#0.1 reg_numj = 'bz;
-							reg_numk = 'bz;
+						
+						#0.1 reg_numi = 'bz;
+						reg_numj = 'bz;
+						reg_numk = 'bz;
 
-							valid <= 1'b0;
+
+						valid <= 1'b0;
 					end else begin
 					end
 			end else begin: execute
@@ -73,28 +82,10 @@ module ALU_RS(fu, RB_index, inst, vj, vk, qj, qk,
 				ok = 1'b1;
 				checkAndGetData(Qj, Vj, CDB_data_data, CDB_data_valid, ok);
 				checkAndGetData(Qk, Vk, CDB_data_data, CDB_data_valid, ok);
+				checkAndGetData(Qi, Vi, CDB_data_data, CDB_data_valid, ok);
 				if (ok) begin
-					case (op)
-						INST_SUB: begin
-							#0.1 result = Vj-Vk;
-						end
-						INST_SUBI: begin
-							#0.1 result = Vj-Vk;
-						end
-						INST_ADD: begin
-							#0.1 result = Vj+Vk;
-						end
-						INST_ADDI: begin
-							#0.1 result = Vj+Vk;
-						end
-						INST_MUL: begin 
-							#(MUL_STALL+0.1) result = Vj*Vk;
-						end
-						INST_MULI: begin
-							#(MUL_STALL+0.1) result = Vj*Vk;
-						end
-						default: begin	end
-					endcase
+					#0.1 result = Vj-Vk;
+					data = Vi;
 					valid = 1'b1;
 					busy = 1'b0;
 					#1.3 valid = 0'b0;
