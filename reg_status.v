@@ -27,13 +27,18 @@ module reg_status(get_num1, get_num2, get_num3, value1, value2, value3, status1,
 	assign status2 = statuses[get_num2];
 	assign status3 = statuses[get_num3];
 
-	always @(posedge clk or posedge reset) begin:rs
+	always @(negedge clk or posedge reset) begin:rs
 		reg[WORD_SIZE-1:0] i;
 		if (reset) begin
-			for (i = 0; i < REG_FILE_SIZE; i = i+1)
+			for (i = 0; i < REG_FILE_SIZE; i = i+1) begin
 				statuses[i] = READY;
-			//$display("%h", statuses[0]);
-		end else if(write_rs_enable)
+				//$display("reg_status[%d] = %d", i, statuses[i]);
+			end
+		end 
+		else if(write_rs_enable) begin
 					statuses[write_rs_src] <= write_rs_status;
+					$display($realtime, ": reg_status[%d] = %d", write_rs_src, write_rs_status);
+			 end
+			 else begin	 end
 	end
 endmodule

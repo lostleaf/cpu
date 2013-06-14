@@ -13,11 +13,13 @@ parameter ALU_MUL       = 4'h2;
 
 // for INST
 parameter OPCODE_WIDTH  = 4;
-parameter RS_START      = 27;
-parameter RD_START      = 22;
+parameter RS_START      = 22;
+parameter RD_START      = 27;
 parameter RT_START      = 17;
 parameter IMM_START		= 17;
 parameter J_PCOFFSET_START = 27;
+parameter BGE_IMM_START	= 22;
+parameter BGE_PCOFFSET_START = 9;
 parameter INST_ADD      = 4'h0;
 parameter INST_SUB      = 4'h1;
 parameter INST_MUL      = 4'h2;
@@ -32,18 +34,20 @@ parameter INST_LI       = 4'ha;
 parameter INST_J        = 4'hb;
 parameter INST_JR       = 4'hc;
 parameter INST_BGE      = 4'hd;
+//parameter INST_NOP		= 4'hf;
 
 // for FU
-parameter ADDER_NUM     = 3;
-parameter MULTER_NUM    = 2;    // multiplier
-parameter LOADER_NUM    = 3;
-parameter STORER_NUM    = 2;
+parameter ADDER_NUM     = 4'd3;
+parameter MULTER_NUM    = 4'd2;    // multiplier
+parameter LOADER_NUM    = 4'd3;
+parameter STORER_NUM    = 4'd2;
 parameter FU_NUM        = ADDER_NUM+MULTER_NUM+LOADER_NUM+STORER_NUM;       
-parameter FU_INDEX      = 4;    // ceiling(FU_NUM)
-parameter ADDER_START	= 0;
+parameter FU_INDEX      = 4'd4;    // ceiling(FU_NUM)
+parameter ADDER_START	= 4'd0;
 parameter MULTER_START	= ADDER_NUM;
 parameter STORER_START	= MULTER_START+MULTER_NUM;
 parameter LOADER_START	= FU_NUM-LOADER_NUM;
+parameter NO_FU			= 4'hf;
 
 parameter MUL_STALL     = 3;
 parameter MEM_STALL		= 100;

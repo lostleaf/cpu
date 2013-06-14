@@ -54,6 +54,7 @@ module ALU_RS(fu, RB_index, inst, vj, vk, qj, qk,
 						dest  <= RB_index;
 						reg_numj = inst[RS_START: RS_START-REG_INDEX+1];
 						getData(vj, qj, Vj, Qj,CDB_data_data, CDB_data_valid);
+						//$display("qj = %d", qj);
 						if (op == INST_ADD || op == INST_SUB || op == INST_MUL) begin
 							reg_numk = inst[RT_START: RT_START-REG_INDEX+1];
 							getData(vk, qk, Vk, Qk, CDB_data_data, CDB_data_valid);
@@ -73,6 +74,7 @@ module ALU_RS(fu, RB_index, inst, vj, vk, qj, qk,
 				ok = 1'b1;
 				checkAndGetData(Qj, Vj, CDB_data_data, CDB_data_valid, ok);
 				checkAndGetData(Qk, Vk, CDB_data_data, CDB_data_valid, ok);
+				//$display("op = %h, ok = %d, Qj = %d, Vj = %d, Qk = %d, Vk = %d",op, ok, Qj, Vj, Qk, Vk);
 				if (ok) begin
 					case (op)
 						INST_SUB: begin
@@ -95,6 +97,7 @@ module ALU_RS(fu, RB_index, inst, vj, vk, qj, qk,
 						end
 						default: begin	end
 					endcase
+					//$display($realtime, "result = %d", result);
 					valid = 1'b1;
 					busy = 1'b0;
 					#1.3 valid = 0'b0;
@@ -120,6 +123,7 @@ module ALU_RS(fu, RB_index, inst, vj, vk, qj, qk,
 						Q = READY;
 					end
 			else Q = q;
+			//$display($realtime, "valid of %d: %d", q, readValidBus(CDB_data_valid, q));
 		end
 	endtask
 
@@ -128,6 +132,7 @@ module ALU_RS(fu, RB_index, inst, vj, vk, qj, qk,
 		input[RB_INDEX-1:0]			 index;		  
 		begin
 			readDataBus = CDB_data_data>>(index*WORD_SIZE);
+			//$display("shr: %d, CDB_data_data = %h, readDataBus = %d", index*WORD_SIZE, CDB_data_data, readDataBus);
 		end
 	endfunction
 
@@ -147,13 +152,12 @@ module ALU_RS(fu, RB_index, inst, vj, vk, qj, qk,
 		inout ok;
 		reg valid;
 		begin
-			//$display("<Q:%g, V:%g>", Q, V);
 			if (Q === READY) begin end
 			else begin 
 				valid = readValidBus(validBus, Q);
 				if (valid) begin
-					Q = READY;
 					V = readDataBus(dataBus, Q);
+					Q = READY;
 				end else ok = 1'b0;
 			end
 		end
