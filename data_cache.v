@@ -1,14 +1,19 @@
 // use write back policy
 // if miss, save dirty cache, load new block
-module data_cache(ptr, val, out, read_enable, write_enable, clk, hit);
+`include "timescale.v"
+module data_cache(ptr_read1,    ptr_read2,    ptr_read3, 
+                  out1,         out2,         out3, 
+                  hit_read1,    hit_read2,    hit_read3, 
+                  read_enable1, read_enable2, read_enable3,
+                  ptr_write, val, write_enable, hit_write, clk);
 
     `include "parameters.v"
 
-    input  wire                 read_enable, write_enable, clk;
-    input  wire [WORD_SIZE-1:0] ptr, val;
+    input  wire read_enable1, read_enable2, read_enable3, write_enable, clk;
+    input  wire [WORD_SIZE-1:0] ptr_read1, ptr_read2, ptr_read3, ptr_write, val;
 
-    output reg  [WORD_SIZE-1:0] out;
-    output reg                  hit = 0;
+    output reg  [WORD_SIZE-1:0] out1, out2, out3;
+    output reg  hit_read1 = 0, hit_read2 = 0, hit_read3 = 0, hit_write = 0;
 
     wire        [WORD_SIZE-1:0]             out_mem_data;
     wire        [WORD_SIZE*BLOCK_SIZE-1:0]  out_mem_block;
@@ -17,18 +22,30 @@ module data_cache(ptr, val, out, read_enable, write_enable, clk, hit);
 
     data_memory dmemory(ptr, in_mem_block, out_mem_data, out_mem_block, clk, mwrite_enable);
 
-    wire  [3:0]   offset;
-    wire  [9:0]   index;
-    wire  [17:0]  data_tag;
+    wire  [3:0]   offset_r1,   offset_r2,   offset_r3,   offset_w;
+    wire  [9:0]   index_r1,    index_r2,    index_r3,    index_w;
+    wire  [17:0]  data_tag_r1, data_tag_r2, data_tag_r3, data_tag_w;
 
     reg [WORD_SIZE*BLOCK_SIZE-1:0]  cache   [CACHE_SIZE-1:0];
     reg [TAG_SIZE-1:0]              tag     [CACHE_SIZE-1:0];
     reg                             dirty   [CACHE_SIZE-1:0];
     reg                             valid   [CACHE_SIZE-1:0];
 
-    assign offset   = ptr[3:0];
-    assign index    = ptr[13:4];
-    assign data_tag = ptr[31:14];
+    assign offset_r1   = ptr_read1[3:0];
+    assign index_r1    = ptr_read1[13:4];
+    assign data_tag_r1 = ptr_read1[31:14];
+    
+    assign offset_r2   = ptr_read2[3:0];
+    assign index_r2    = ptr_read2[13:4];
+    assign data_tag_r2 = ptr_read2[31:14];
+    
+    assign offset_r3   = ptr_read3[3:0];
+    assign index_r3    = ptr_read3[13:4];
+    assign data_tag_r3 = ptr_read3[31:14];
+    
+    assign offset_w    = ptr_write[3:0];
+    assign index_w     = ptr_write[13:4];
+    assign data_tag_w  = ptr_write[31:14];
 
     initial begin:init
         reg [WORD_SIZE-1:0] i;
@@ -40,63 +57,79 @@ module data_cache(ptr, val, out, read_enable, write_enable, clk, hit);
     end
 
     always @(posedge clk) begin
-        if (write_enable && read_enable) begin
-            $display("%m illegal, write and read both enabled");
-            $stop;
-        end
-
         if (write_enable) begin
-            if (tag[index] == data_tag && valid[index]) begin 
-                hit          = 1;
-                dirty[index] = 1;
-                valid[index] = 1;
-                cache[index] = 
+            if (tag[index_w] == data_tag_w && valid[index_w]) begin 
+                hit            = 1;
+                dirty[index_w] = 1;
+                valid[index_w] = 1;
+                cache[index_w] = 
                     (// xor new value with original value in cache
-                        (val ^ (cache[index] >> ((15 - offset) * WORD_SIZE) & 32'hffffffff))
+                        (val ^ (cache[index_w] >> ((15 - offset_w) * WORD_SIZE) & 32'hffffffff))
                     //shift to original place
-                        << ((15 - offset) * WORD_SIZE)
-                    ) ^ cache[index];
+                        << ((15 - offset_w) * WORD_SIZE)
+                    ) ^ cache[index_w];
             end else begin
                 hit = 0;
                 //write back
-                if (dirty[index] && valid[index]) begin
-                    in_mem_block  = cache[index];
+                if (dirty[index_w] && valid[index_w]) begin
+                    in_mem_block  = cache[index_w];
                     mwrite_enable = 1'b1;
                 end
                 #1; // necessory?
-                mwrite_enable = 1'b0;
-                dirty[index]  = 0;
-                valid[index]  = 1;
-                cache[index]  = 
+                mwrite_enable  = 1'b0;
+                dirty[index_w] = 0;
+                valid[index_w] = 1;
+                tag[index_w]   = data_tag_w;               
+                cache[index_w] = 
                     (// xor new value with original value in cache
-                        (val ^ (cache[index] >> ((15 - offset) * WORD_SIZE) & 32'hffffffff))
+                        (val ^ (cache[index_w] >> ((15 - offset_w) * WORD_SIZE) & 32'hffffffff))
                     //shift to original place
-                        << ((15 - offset) * WORD_SIZE)
-                    ) ^ cache[index];               
+                        << ((15 - offset_w) * WORD_SIZE)
+                    ) ^ cache[index_w];
             end
         end
 
-        if (read_enable) begin
-            if (tag[index] == data_tag && valid[index]) begin 
+        if (read_enable1 || read_enable2 || read_enable3) begin
+            if (read_enable1)
+                read_data(dirty[index_r1], valid[index_r1], tag[index_r1], 
+                            data_tag_r1, cache[index_r1], offset_r1);
+            if (read_enable2)
+                read_data(dirty[index_r2], valid[index_r2], tag[index_r2], 
+                            data_tag_r2, cache[index_r2], offset_r2);
+            if (read_enable3)
+                read_data(dirty[index_r3], valid[index_r3], tag[index_r3], 
+                            data_tag_r3, cache[index_r3], offset_r3);
+        end
+    end
+
+    task read_data;
+        inout dirty, valid;
+        inout [TAG_SIZE-1:0] tag;
+        input [TAG_SIZE-1:0] data_tag;
+        inout [BLOCK_SIZE*WORD_SIZE-1:0] cache;
+        input [3:0] offset;
+        begin
+            if (tag == data_tag && valid) begin 
                 hit = 1;
-                out = cache[index] >> ((15 - offset) * WORD_SIZE) & 32'hffffffff;
-                dirty[index] = 1;
-                valid[index] = 1;
+                out = cache >> ((15 - offset) * WORD_SIZE) & 32'hffffffff;
+                dirty = 1;
+                valid = 1;
             end else begin
                 hit = 0;
                 //write back
                 $display($time);
-                if (dirty[index] && valid[index]) begin
-                    in_mem_block  = cache[index];
+                if (dirty && valid) begin
+                    in_mem_block  = cache;
                     mwrite_enable = 1'b1;
-                    #1; // necessory?
+                    #0.1; // necessory?
                     mwrite_enable = 1'b0;
                 end
-                cache[index]  = out_mem_block; 
-                dirty[index]  = 0;
-                valid[index]  = 1;
-                out = cache[index] >> ((15 - offset) * WORD_SIZE) & 32'hffffffff;               
+                cache = out_mem_block; 
+                dirty = 0;
+                valid = 1;
+                tag = data_tag;
+                out = cache >> ((15 - offset) * WORD_SIZE) & 32'hffffffff;               
             end
         end
-end
+    endtask
 endmodule

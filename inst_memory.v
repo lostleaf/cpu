@@ -22,7 +22,7 @@ module inst_memory (out_block, out_inst, ptr);
     initial begin:init
         reg[WORD_SIZE-1:0] i;
         for(i = 0; i < MEM_SIZE; i = i + 1)
-            data[i] = 32'h0;
+            memory[i] = 32'h0;
         $readmemb("code.bin", memory);
     end
 endmodule

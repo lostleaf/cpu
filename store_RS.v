@@ -50,7 +50,8 @@ module store_RS(fu, RB_index, inst,vi, vj, vk, qi, qj, qk,
 			valid <= 1'b0;
 			result <= 'b0;
 		end else if (!busy) begin: checkIssue
-				#0.1 if (fu == fuindex) begin
+				#0.1;
+				if (fu == fuindex) begin
 						$display($realtime, ": %d receive inst:%b", fuindex, inst);
 						busy  <= 1'b1;
 						dest  <= RB_index;
@@ -75,8 +76,8 @@ module store_RS(fu, RB_index, inst,vi, vj, vk, qi, qj, qk,
 
 
 						valid <= 1'b0;
-					end else begin
-					end
+				end else begin
+				end
 			end else begin: execute
 				reg ok;
 				ok = 1'b1;
@@ -91,7 +92,8 @@ module store_RS(fu, RB_index, inst,vi, vj, vk, qi, qj, qk,
 					#1.3 valid = 0'b0;
 					dest = NULL;
 				end
-				else begin end
+				else begin 
+				end
 			end
 	end
 	
