@@ -1,6 +1,5 @@
 #! /usr/bin/env ruby
 #coding: utf-8
-require "stringio"
 class Assembler
     def initialize(input, output)
         @INST   = %w[add sub mul lwrr swrr addi subi muli lw sw li j jr bge]
@@ -27,15 +26,9 @@ class Assembler
                 next
             end
 
-            #split oprands and instruction
+            #split oprands with instruction
             inst_str, op_str = line.split(/\s+/,2)
             ops = op_str.gsub(/\s+/,'').split(',')
-
-            #normalize lw and sw
-            if %w[lw sw lwrr swrr].include? inst_str
-                pattern = /([\w\$]+)?(?:\(([\w\$]+)\))?/
-                ops = [ops[0],*ops[1].match(pattern)[1..2].map{|e|e||"0"}.reverse]
-            end
 
             @insts << [@INST.find_index(inst_str), ops, line]
         end
@@ -45,9 +38,9 @@ class Assembler
         @insts.each do |inst_code, ops, inst_ori|
             opsc = ops.collect { |op| convert_reg_name op}
             case inst_code
-            when 0..4       #add..sw
+            when 0..4       #add..swrr
                 @output.puts "%04b_%05b_%05b_%05b_#{'0'*13}" % [inst_code, *opsc]
-            when 5..9       #addi..swi
+            when 5..9       #addi..sw
                 @output.puts "%04b_%05b_%05b_%018b" % [inst_code, *opsc]
             when 10         #li
                 @output.puts "%04b_%05b_%023b" % [inst_code, *opsc]
