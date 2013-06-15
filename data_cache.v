@@ -1,6 +1,5 @@
 // use write back policy
 // if miss, save dirty cache, load new block
-`include "timescale.v"
 module data_cache(ptr_read1,    ptr_read2,    ptr_read3, 
                   out1,         out2,         out3, 
                   hit_read1,    hit_read2,    hit_read3, 
@@ -13,14 +12,18 @@ module data_cache(ptr_read1,    ptr_read2,    ptr_read3,
     input  wire [WORD_SIZE-1:0] ptr_read1, ptr_read2, ptr_read3, ptr_write, val;
 
     output reg  [WORD_SIZE-1:0] out1, out2, out3;
-    output reg  hit_read1 = 0, hit_read2 = 0, hit_read3 = 0, hit_write = 0;
+    output reg  hit_read1, hit_read2, hit_read3, hit_write;
 
-    wire        [WORD_SIZE-1:0]             out_mem_data;
-    wire        [WORD_SIZE*BLOCK_SIZE-1:0]  out_mem_block;
+    wire        [WORD_SIZE-1:0]             out_mem_data1, out_mem_data2, out_mem_data3;
+    wire        [WORD_SIZE*BLOCK_SIZE-1:0]  out_mem_block1, out_mem_block2, out_mem_block3;
     reg                                     mwrite_enable;
     reg         [WORD_SIZE*BLOCK_SIZE-1:0]  in_mem_block;
 
-    data_memory dmemory(ptr, in_mem_block, out_mem_data, out_mem_block, clk, mwrite_enable);
+    data_memory dmemory(ptr_write, in_mem_block, 
+                    ptr_read1, ptr_read2, ptr_read3, 
+                    out_mem_data1, out_mem_data2, out_mem_data3, 
+                    out_mem_block1, out_mem_block2, out_mem_block3, 
+                    clk, write_enable);
 
     wire  [3:0]   offset_r1,   offset_r2,   offset_r3,   offset_w;
     wire  [9:0]   index_r1,    index_r2,    index_r3,    index_w;
@@ -64,7 +67,10 @@ module data_cache(ptr_read1,    ptr_read2,    ptr_read3,
                 valid[index_w] = 1;
                 cache[index_w] = 
                     (// xor new value with original value in cache
-                        (val ^ (cache[index_w] >> ((15 - offset_w) * WORD_SIZE) & 32'hffffffff))
+                        (
+                            val ^ (cache[index_w] >> 
+                            ((15 - offset_w) * WORD_SIZE) & 32'hffffffff)
+                        )
                     //shift to original place
                         << ((15 - offset_w) * WORD_SIZE)
                     ) ^ cache[index_w];
@@ -75,14 +81,17 @@ module data_cache(ptr_read1,    ptr_read2,    ptr_read3,
                     in_mem_block  = cache[index_w];
                     mwrite_enable = 1'b1;
                 end
-                #1; // necessory?
+                #0.1; // necessory?
                 mwrite_enable  = 1'b0;
                 dirty[index_w] = 0;
                 valid[index_w] = 1;
                 tag[index_w]   = data_tag_w;               
                 cache[index_w] = 
                     (// xor new value with original value in cache
-                        (val ^ (cache[index_w] >> ((15 - offset_w) * WORD_SIZE) & 32'hffffffff))
+                        (
+                            val ^ (cache[index_w] >> 
+                            ((15 - offset_w) * WORD_SIZE) & 32'hffffffff)
+                        )
                     //shift to original place
                         << ((15 - offset_w) * WORD_SIZE)
                     ) ^ cache[index_w];
@@ -92,13 +101,17 @@ module data_cache(ptr_read1,    ptr_read2,    ptr_read3,
         if (read_enable1 || read_enable2 || read_enable3) begin
             if (read_enable1)
                 read_data(dirty[index_r1], valid[index_r1], tag[index_r1], 
-                        data_tag_r1, cache[index_r1], offset_r1, hit_read1, out1);
+                        data_tag_r1, cache[index_r1], offset_r1, hit_read1, out1,
+                        out_mem_block1);
             if (read_enable2)
                 read_data(dirty[index_r2], valid[index_r2], tag[index_r2], 
-                        data_tag_r2, cache[index_r2], offset_r2, hit_read2, out2);
+                        data_tag_r2, cache[index_r2], offset_r2, hit_read2, out2,
+                        out_mem_block2);
             if (read_enable3)
                 read_data(dirty[index_r3], valid[index_r3], tag[index_r3], 
-                        data_tag_r3, cache[index_r3], offset_r3, hit_read3, out3);
+                        data_tag_r3, cache[index_r3], offset_r3, hit_read3, out3,
+                        out_mem_block3);
+            $display("h : %b %b %b" , hit_read1, hit_read2, hit_read3);
         end
     end
 
@@ -110,8 +123,10 @@ module data_cache(ptr_read1,    ptr_read2,    ptr_read3,
         input [3:0] offset;
         output hit;
         output [WORD_SIZE-1:0] out;
+        input [BLOCK_SIZE*WORD_SIZE-1:0] out_mem_block;
         begin
             if (tag == data_tag && valid) begin 
+                // $display(hit);
                 hit = 1;
                 out = cache >> ((15 - offset) * WORD_SIZE) & 32'hffffffff;
                 dirty = 1;
@@ -119,7 +134,6 @@ module data_cache(ptr_read1,    ptr_read2,    ptr_read3,
             end else begin
                 hit = 0;
                 //write back
-                $display($time);
                 if (dirty && valid) begin
                     in_mem_block  = cache;
                     mwrite_enable = 1'b1;
@@ -127,6 +141,7 @@ module data_cache(ptr_read1,    ptr_read2,    ptr_read3,
                     mwrite_enable = 1'b0;
                 end
                 cache = out_mem_block; 
+                // $display("%t %d %d", $time, offset, out_mem_block, out_mem_block1);
                 dirty = 0;
                 valid = 1;
                 tag = data_tag;
