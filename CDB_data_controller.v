@@ -33,6 +33,7 @@ module CDB_data_controller(CDB_data_data, CDB_data_valid, CDB_data_addr,
 				if (index == NULL)	begin end
 				else begin
 					data_each = readData(data_bus, i);
+					$display($realtime, ":controler: %g %g",i,data_each);
 					data_each = data_each << (index*WORD_SIZE);
 					data = data | data_each;
 					valid_each = readValid(valid_bus, i);

@@ -29,6 +29,7 @@
             end
         end else if (set_enable) begin
             register[set_num] <= set_val;
+            $display($realtime, ": reg[%d] = %d", set_num, set_val);
         end
     end
 

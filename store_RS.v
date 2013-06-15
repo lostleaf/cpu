@@ -78,7 +78,14 @@ module store_RS(fu, RB_index, inst,vi, vj, vk, qi, qj, qk,
 						valid <= 1'b0;
 				end else begin
 				end
-			end else begin: execute
+			end else begin	end
+	end
+	
+
+	
+
+	always @(posedge clk) 
+		if (busy) begin: execute
 				reg ok;
 				ok = 1'b1;
 				checkAndGetData(Qj, Vj, CDB_data_data, CDB_data_valid, ok);
@@ -89,14 +96,15 @@ module store_RS(fu, RB_index, inst,vi, vj, vk, qi, qj, qk,
 					data = Vi;
 					valid = 1'b1;
 					busy = 1'b0;
-					#1.3 valid = 0'b0;
-					dest = NULL;
+					#0.5 dest = NULL;
+					#0.8 valid = 0'b0;
+					
 				end
 				else begin 
 				end
-			end
-	end
-	
+		end
+		else begin end
+		
 	task getData;	//(v, q, CDB_data_data, CDB_data_valid, V, Q)
 		input[WORD_SIZE-1:0] v;
 		input[RB_INDEX-1:0]	 q;

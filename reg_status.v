@@ -1,7 +1,10 @@
 `include "timescale.v"
 `include "reg_file_RX.v"
 module reg_status(get_num1, get_num2, get_num3, value1, value2, value3, status1, status2, status3,
-	 write_reg_src, write_reg_data, write_reg_enable, write_rs_src, write_rs_status, write_rs_enable, reset, clk);	// rs stands for reg_status
+	 				write_reg_src, 	write_reg_data,		write_reg_enable, 
+	 				write_rs_src1, 	write_rs_status1,	write_rs_enable1,
+	 				write_rs_src2, 	write_rs_status2,	write_rs_enable2,
+	 				reset, clk);	// rs stands for reg_status
 	
 	`include "parameters.v"
 
@@ -13,9 +16,9 @@ module reg_status(get_num1, get_num2, get_num3, value1, value2, value3, status1,
 	input	wire[WORD_SIZE-1:0] write_reg_data;
 	input	wire write_reg_enable;
 
-	input	wire[REG_INDEX-1:0] write_rs_src;
-	input	wire[FU_INDEX-1:0]	write_rs_status;
-	input	wire 				write_rs_enable;
+	input	wire[REG_INDEX-1:0] write_rs_src1, write_rs_src2;
+	input	wire[FU_INDEX-1:0]	write_rs_status1, write_rs_status2;
+	input	wire 				write_rs_enable1, write_rs_enable2;
 
 	input	wire reset, clk;
 
@@ -35,10 +38,15 @@ module reg_status(get_num1, get_num2, get_num3, value1, value2, value3, status1,
 				//$display("reg_status[%d] = %d", i, statuses[i]);
 			end
 		end 
-		else if(write_rs_enable) begin
-					statuses[write_rs_src] <= write_rs_status;
-					$display($realtime, ": reg_status[%d] = %d", write_rs_src, write_rs_status);
-			 end
-			 else begin	 end
+		else begin
+			if(write_rs_enable1) begin
+					statuses[write_rs_src1] <= write_rs_status1;
+					$display($realtime, ": reg_status[%d] = %d", write_rs_src1, write_rs_status1);
+			end
+			if(write_rs_enable2) begin
+					statuses[write_rs_src2] <= write_rs_status2;
+					$display($realtime, ": reg_status[%d] = %d", write_rs_src2, write_rs_status2);
+			end
+		end
 	end
 endmodule

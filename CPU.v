@@ -6,6 +6,7 @@
 `include "reg_status.v"
 `include "CDB_data_controller.v"
 `include "reorder_buffer.v"
+`include "load_RS.v"
 module CPU;
 	`include "parameters.v"
 
@@ -37,10 +38,10 @@ module CPU;
 
 	// not done
 	// for reg
-	wire we_reg, we_status;
-	wire[REG_INDEX-1:0]	ws_reg, ws_status;
+	wire we_reg, we_status1, we_status2;
+	wire[REG_INDEX-1:0]	ws_reg, ws_status1, ws_status2;
 	wire[WORD_SIZE-1:0]	wd_reg;
-	wire[RB_INDEX-1:0]	wd_status;
+	wire[RB_INDEX-1:0]	wd_status1, wd_status2;
 	// for CDB_inst
 	reg[FU_INDEX-1:0]	fu;
 	wire[WORD_SIZE-1:0]	inst;
@@ -61,9 +62,11 @@ module CPU;
 	reg_status status(.get_num1(numi), .get_num2(numj), .get_num3(numk), .value1(vi), .value2(vj), .value3(vk), 
 		.status1(qi), .status2(qj), .status3(qk),
 		.write_reg_src(ws_reg), .write_reg_data(wd_reg), .write_reg_enable(we_reg), 
-		.write_rs_src(ws_status), .write_rs_status(wd_status), .write_rs_enable(we_status), .reset(reset), .clk(clk));
+		.write_rs_src1(ws_status1), .write_rs_status1(wd_status1), .write_rs_enable1(we_status1),
+		.write_rs_src2(ws_status2), .write_rs_status2(wd_status2), .write_rs_enable2(we_status2),
+		.reset(reset), .clk(clk));
 	
-	ALU_RS alu_rs[FU_NUM-STORER_NUM-1:0](.fu(CDB_inst_fu), .RB_index(CDB_inst_RBindex), .inst(CDB_inst_inst), .vj(vj), .vk(vk), 
+	ALU_RS alu_rs[FU_NUM-STORER_NUM-LOADER_NUM-1:0](.fu(CDB_inst_fu), .RB_index(CDB_inst_RBindex), .inst(CDB_inst_inst), .vj(vj), .vk(vk), 
 		.qj(qj), .qk(qk), .reg_numj(numj), .reg_numk(numk), .busy_out(busy), 
 		.CDB_data_data(CDB_data_data), .CDB_data_valid(CDB_data_valid), 
 		.data_bus(FU_data_bus), .valid_bus(FU_valid_bus), .RB_index_bus(FU_RB_index_bus),.reset(reset), .clk(clk));
@@ -75,6 +78,14 @@ module CPU;
 		.data_bus(FU_data_bus), .valid_bus(FU_valid_bus), .addr_bus(FU_addr_bus),
 		.RB_index_bus(FU_RB_index_bus),.reset(reset), .clk(clk));
 
+	load_RS load_rs[LOADER_NUM-1:0](.fu(CDB_inst_fu), .RB_index(CDB_inst_RBindex), .inst(CDB_inst_inst),
+		.vj(vj), .vk(vk), .qj(qj), .qk(qk),                  
+    	.reg_numj(numj), .reg_numk(numk), .busy_out(busy), 
+    	.CDB_data_data(CDB_data_data), .CDB_data_valid(CDB_data_valid),
+    	.data_bus(FU_data_bus), .valid_bus(FU_valid_bus), .RB_index_bus(FU_index_bus), 
+    	.reset(reset), .clk(clk));
+
+
 	CDB_data_controller data_ctrl(.CDB_data_data(CDB_data_data), .CDB_data_valid(CDB_data_valid), .CDB_data_addr(CDB_data_addr),
 		.data_bus(FU_data_bus), .valid_bus(FU_valid_bus), .addr_bus(FU_addr_bus),
 		.RB_index_bus(FU_RB_index_bus), .reset(reset), .clk(clk));
@@ -84,7 +95,8 @@ module CPU;
 		.we_mem(we_dcache), .wd_mem(wd_dcache), .ws_mem(ws_dcache), .numj(numj), .numk(numk),
 		.vj(vj), .vk(vk), .qj(qj), .qk(qk), 
 		.CDB_inst_fu(CDB_inst_fu), .CDB_inst_inst(CDB_inst_inst), .CDB_inst_RBindex(CDB_inst_RBindex), 
-		.Rdest_status(ws_status), .RB_index_status(wd_status), .we_status(we_status),
+		.Rdest_status_issue(ws_status1), .RB_index_status_issue(wd_status1), .we_status_issue(we_status1),
+		.Rdest_status_wb(ws_status2),	 .RB_index_status_wb(wd_status2),	 .we_status_wb(we_status2),
 		.reset(reset), .clk(clk));
 
 	always begin
@@ -100,12 +112,17 @@ module CPU;
 		$dumpfile("CPU2.vcd");
 		$dumpvars;
 
-		$monitor("%g: CDB: 1:<v:%b, d:%g, a:%g>, 2:<v:%b, d:%g, a:%g>, busy: 0:%g, 1:%g",
+		/*$monitor("%g: CDB: 1:<v:%b, d:%g, a:%g>, 2:<v:%b, d:%g, a:%g>, busy: 0:%g, 1:%g",
 			$realtime,
 			CDB_data_valid[1], CDB_data_data[2*WORD_SIZE-1:WORD_SIZE], CDB_data_addr[2*WORD_SIZE-1:WORD_SIZE], 
 			CDB_data_valid[2], CDB_data_data[3*WORD_SIZE-1:2*WORD_SIZE], CDB_data_addr[3*WORD_SIZE-1:2*WORD_SIZE],
-			busy[0], busy[1]);
-
+			busy[0], busy[1]);*/
+		//$monitor($realtime, ": V:%b\nd:%h\naddr:%h\nbusy:%b",CDB_data_valid[4:0], CDB_data_data[4*WORD_SIZE-1:0], CDB_data_addr[4*WORD_SIZE-1:0], busy);
+		$monitor($realtime,": V:%b\nD:1:%g, 2:%g, 3:%g\naddr:1:%g, 2:%g, 3:%g", 
+					CDB_data_valid,
+					CDB_data_data[2*WORD_SIZE-1:WORD_SIZE], CDB_data_data[3*WORD_SIZE-1:2*WORD_SIZE], CDB_data_data[4*WORD_SIZE-1:3*WORD_SIZE],
+					CDB_data_addr[2*WORD_SIZE-1:WORD_SIZE], CDB_data_addr[3*WORD_SIZE-1:2*WORD_SIZE], CDB_data_addr[4*WORD_SIZE-1:3*WORD_SIZE]);
+		
 		/*$monitor($realtime, "inst:%b, fu:%d, RB_index = %d", 
 			CDB_inst_inst, CDB_inst_fu, CDB_inst_RBindex);*/
 		
@@ -142,7 +159,7 @@ module CPU;
 		end
 		*/
 
-		#110 $finish;
+		#120 $finish;
 	end
 
 	task setWriteBy;

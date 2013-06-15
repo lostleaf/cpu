@@ -41,6 +41,7 @@ module ALU_RS(fu, RB_index, inst, vj, vk, qj, qk,
 	assign RB_index_bus[(fuindex+1)*RB_INDEX-1:fuindex*RB_INDEX] = dest;
 
 	always @(posedge clk or posedge reset) begin
+		//$display($realtime, ": %d busy:%d, sees CDB_inst: %d, %b", busy, fuindex, fu, inst);
 		if (reset) begin
 			busy <= 1'b0;
 			dest <= NULL;
@@ -69,7 +70,7 @@ module ALU_RS(fu, RB_index, inst, vj, vk, qj, qk,
 							valid <= 1'b0;
 					end else begin
 					end
-			end else begin: execute
+			end else begin/*: execute
 				reg ok;
 				ok = 1'b1;
 				checkAndGetData(Qj, Vj, CDB_data_data, CDB_data_valid, ok);
@@ -103,10 +104,52 @@ module ALU_RS(fu, RB_index, inst, vj, vk, qj, qk,
 					#1.3 valid = 0'b0;
 					dest = NULL;
 				end
-				else begin end
+				else begin end*/
 			end
 	end
 	
+	always @(posedge clk) 
+		if (busy) begin: execute
+			reg ok;
+			//$display($realtime, ": %d about to execute", fuindex);
+
+			ok = 1'b1;
+			checkAndGetData(Qj, Vj, CDB_data_data, CDB_data_valid, ok);
+			checkAndGetData(Qk, Vk, CDB_data_data, CDB_data_valid, ok);
+			//$display("op = %h, ok = %d, Qj = %d, Vj = %d, Qk = %d, Vk = %d",op, ok, Qj, Vj, Qk, Vk);
+			if (ok) begin
+				case (op)
+					INST_SUB: begin
+						#0.1 result = Vj-Vk;
+					end
+					INST_SUBI: begin
+						#0.1 result = Vj-Vk;
+					end
+					INST_ADD: begin
+						#0.1 result = Vj+Vk;
+					end
+					INST_ADDI: begin
+						#0.1 result = Vj+Vk;
+					end
+					INST_MUL: begin 
+						#(MUL_STALL+0.1) result = Vj*Vk;
+					end
+					INST_MULI: begin
+						#(MUL_STALL+0.1) result = Vj*Vk;
+					end
+					default: begin	end
+				endcase
+					
+				valid = 1'b1;
+				//$display($realtime, ": %g result = %d, dest = %d", fuindex, result, dest);
+				busy = 1'b0;
+				#0.5 dest = NULL;
+				#0.8 valid = 0'b0;
+			end
+		end
+		else begin end
+
+
 	task getData;	//(v, q, CDB_data_data, CDB_data_valid, V, Q)
 		input[WORD_SIZE-1:0] v;
 		input[RB_INDEX-1:0]	 q;

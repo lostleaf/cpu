@@ -1,0 +1,6 @@
+TO DO List
+=====
+###Reorder Buffer
+1.when meeting with branch, it assumes all its oprands are ready
+
+1.when meeting with branch, there is one stall
