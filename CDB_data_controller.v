@@ -30,7 +30,7 @@ module CDB_data_controller(CDB_data_data, CDB_data_valid, CDB_data_addr,
 
 			for (i = 0; i < FU_NUM; i = i+1) begin
 				index = readIndex(RB_index_bus, i);
-				if (index == NULL)	begin end
+				if (index == NULL || !readValid(valid_bus, i))	begin end
 				else begin
 					data_each = readData(data_bus, i);
 					$display($realtime, ":controler: %g %g",i,data_each);

@@ -7,7 +7,7 @@ module reorder_buffer(CDB_data_data, CDB_data_valid, CDB_data_addr, busy,
 						CDB_inst_fu, CDB_inst_inst, CDB_inst_RBindex,
 						Rdest_status_issue, RB_index_status_issue,	we_status_issue,
 						Rdest_status_wb,	RB_index_status_wb,		we_status_wb,
-						reset, clk);
+						reset_out, reset, clk);
 
 	`include "parameters.v"
 
@@ -35,9 +35,11 @@ module reorder_buffer(CDB_data_data, CDB_data_valid, CDB_data_addr, busy,
 	output	reg 				we_status_issue = 1'b0, we_status_wb = 1'b0;
 
 	input	wire clk, reset;
+	output 	reg[FU_NUM-1:0]  reset_out = ~0;
 
 	//reg [WORD_SIZE-1:0]	RB_PC	[RB_SIZE-1:0];
 	reg [REG_INDEX-1:0]	RB_Rdest[RB_SIZE-1:0];
+	reg [FU_INDEX-1:0]	RB_fu	[RB_SIZE-1:0];
 	reg [WORD_SIZE-1:0]	RB_addr	[RB_SIZE-1:0];
 	reg [WORD_SIZE-1:0]	RB_data	[RB_SIZE-1:0];
 	reg 				RB_valid[RB_SIZE-1:0];
@@ -65,16 +67,18 @@ module reorder_buffer(CDB_data_data, CDB_data_valid, CDB_data_addr, busy,
 		if (reset) begin:rst
 			reg [WORD_SIZE-1:0]	i;
 			for (i = 0; i <  RB_SIZE; i = i + 1) begin
-				RB_valid[i]      <= 1'b0;
-				RB_data_valid[i] <= 1'b0;
+				RB_valid[i]      = 1'b0;
+				RB_data_valid[i] = 1'b0;
 			end	
-			pc          <= 0;
-			we_reg      <= 1'b0; 	we_mem <= 1'b0;	we_status_issue <= 1'b0;	we_status_wb <= 1'b0;
-			head        <= 1'b0;	tail <= 1'b0;	back <= 1'b0;
-			CDB_inst_fu <= NO_FU;
-			numj        <= 'bz;		numk <= 'bz;
-			cnt         <= 0;
-			cnt_enable  <= 1'b0;
+			pc          = 0;
+			we_reg      = 1'b0; 	we_mem	= 1'b0;	we_status_issue = 1'b0;	we_status_wb = 1'b0;
+			head        = 1'b0;		tail 	= 1'b0;	back 			= 1'b0;
+			CDB_inst_fu = NO_FU;
+			numj        = 'bz;		numk	= 'bz;
+			cnt         = 0;
+			cnt_enable  = 1'b0;
+			reset_out	= ~'b0;
+			#0.1 reset_out	= 'b0;
 		end
 		else 
 			if (notFull(head, back))  begin: IF
@@ -86,7 +90,7 @@ module reorder_buffer(CDB_data_data, CDB_data_valid, CDB_data_addr, busy,
 					#(MEM_STALL-1) begin end
 				end
 				if (inst[WORD_SIZE-1:WORD_SIZE-OPCODE_WIDTH] === INST_J)
-					pc <= pc+inst[J_PCOFFSET_START:0];
+					pc = pc+inst[J_PCOFFSET_START:0];
 				else begin:addInst
 					back = inc(back);
 					//RB_PC[back] = pc;
@@ -101,103 +105,112 @@ module reorder_buffer(CDB_data_data, CDB_data_valid, CDB_data_addr, busy,
 
 	always @(posedge clk) begin:issue
 		reg [WORD_SIZE-1:0] inst_now;
-		if (RB_valid[inc(tail)]) begin
+		if (RB_valid[inc(tail)]) begin: issueIfCan
+			reg[FU_INDEX-1:0] 	i;
+			reg[FU_INDEX-1:0]	fuend;
 			inst_now = RB_inst[inc(tail)];
 			op = inst_now[WORD_SIZE-1:WORD_SIZE-OPCODE_WIDTH];
-			//ignore brach so far
-			if (op == INST_BGE) begin:branch
-				reg [WORD_SIZE-1:0] l, r;
 
-				free = 1'b0;
-				we_status_issue = 1'b0;
-
-				/*numj = inst_now[RD_START: RD_START-REG_INDEX+1];
-				getData(vj, qj, l,CDB_data_data, CDB_data_valid);	// assume no stall for this and vj is always ready so far ??
-				r = inst_now[BGE_IMM_START:0];
-
-				if (l >= r) begin:flush
-					reg [RB_INDEX-1:0]	i;
-					#0.1 pc = inst[BGE_PCOFFSET_START:0];
-					for (i = inc(tail); i != inc(back); i = inc(i))
-						RB_valid[i] = 1'b0;
-					back = tail;
-				end 
-				else begin: ignoreBranch	// create 1 stall??
-					tail = inc(tail);
-				end
-				CDB_inst_fu = NO_FU;
-
-				$display("!!!%g: ",$realtime,"RB meets BGE, pc = %g", pc);
-
-				#0.1 numj = 'bz;
-					numk = 'bz;*/
-			end
-			else begin:issueIfCan
-				reg[FU_INDEX-1:0] 	i;
-				reg[FU_INDEX-1:0]	fuend;
-				getFuStartAndNum(op, i, fuend);
-				free = 1'b0;
-				for (i = i; i < fuend && !free; i = i+1) begin
-					if (!busy[i]) begin
-						tail = inc(tail);
-						CDB_inst_inst = inst_now;
-						CDB_inst_fu = i;
-						CDB_inst_RBindex = tail;
-						free = 1'b1;
-						//$display($realtime, "issuing to %d: %b",i, inst_now);
-						RB_data_valid[tail] = 1'b0;
-						if (op === INST_SWRR || op === INST_SW) begin
-							RB_to_mem[tail] = 1'b1;
+			getFuStartAndNum(op, i, fuend);
+			free = 1'b0;
+			/*if (op == INST_BGE) 
+				$display("start = %d, end = %d", i, fuend);)*/
+			for (i = i; i <= fuend && !free; i = i+1) begin
+				if (!busy[i]) begin
+					tail                = inc(tail);
+					CDB_inst_inst       = inst_now;
+					CDB_inst_fu         = i;
+					CDB_inst_RBindex    = tail;
+					free                = 1'b1;
+					
+					RB_data_valid[tail] = 1'b0;
+					RB_fu[tail]         = i;
+					$display($realtime, "issuing to %d: op = %h, %b",i, op, inst_now);
+					if (op === INST_SWRR || op === INST_SW) begin
+						RB_to_mem[tail] = 1'b1;
+					end
+					else if (op === INST_BGE) begin
+							RB_to_mem[tail] = 1'b0;
 						end
 						else begin
 							RB_to_mem[tail] = 1'b0;
 							RB_Rdest [tail] = getRdest(inst_now);
 						end
 					end
-					else begin 	end
-				end
-				//getRegStatusIssue
-				if (!free) begin
-					we_status_issue = 1'b0;
-					CDB_inst_fu = NO_FU;
-				end
-				else begin
-					if (op != INST_SW && op != INST_SWRR) begin	//j or jr will not in RB, branch will set free = 0;
-						Rdest_status_issue    = getRdest(RB_inst[tail]);
-						we_status_issue       = 1'b1;
-						RB_index_status_issue = tail;
-					end	
-					else begin 
-						we_status_issue = 1'b0;
-					end
-				end
+				else begin 	end
+			end
+			//getRegStatusIssue
+			if (!free) begin
+				we_status_issue = 1'b0;
+				CDB_inst_fu = NO_FU;
+			end
+			else begin
+				if (op != INST_SW && op != INST_SWRR && op != INST_BGE) begin	//j or jr will not in RB, branch will set free = 0;
+					Rdest_status_issue    = getRdest(RB_inst[tail]);
+					we_status_issue       = 1'b1;
+					RB_index_status_issue = tail;
+				end	
+				else we_status_issue = 1'b0;
 			end
 		end
 		else begin
 			CDB_inst_fu = NO_FU;			// change RS!!
+			we_status_issue = 1'b0;
 		end
 		//$display($realtime, "tail = %d", tail);
 	end
 
-	always @(posedge clk) begin: writeBack	// issue the command at posedge, the the execution unit truly write data at negedge
+	always @(negedge clk) begin: updateCDB
 		reg [WORD_SIZE-1:0] i;
-		for (i = head; i != inc(tail); i = inc(i)) begin
+		reg hasBranch;
+		reg [RB_INDEX-1:0]	mark;
+		reg [OPCODE_WIDTH-1:0]	op;
+
+		hasBranch  = 1'b0;
+		#0.1 for (i = head; i != inc(tail); i = inc(i)) begin
 			if (readValidBus(CDB_data_valid, i)) begin
+				op = RB_inst[i][INST_START:INST_START-OPCODE_WIDTH+1];
 				RB_data[i]       = readDataBus(CDB_data_data, i);
 				RB_data_valid[i] = 1'b1;
-				if (RB_to_mem[i]) 
+				if (RB_to_mem[i] || op == INST_BGE) 
 					RB_addr[i] = readDataBus(CDB_data_addr, i);
+				if (op == INST_BGE) begin
+					hasBranch = 1'b1;
+					mark = i;
+				end
 			end
 		end
+
+		if (hasBranch) begin: updatePCAndResetIfNeed
+			if (!RB_data[mark]) begin end
+			else begin
+				pc = CDB_data_addr;
+				for (i = mark; i != inc(tail); i = inc(tail)) begin
+					reset_out = reset_out | (1'b1<<RB_fu[i]);
+					RB_valid[i] = 1'b0;
+				end
+				mark = dec(mark);
+				tail = mark;	back = mark;
+				#0.1 reset_out = 'b0;
+			end
+		end
+	end
+
+	always @(posedge clk) begin: writeBack	// issue the command at posedge, the the execution unit truly write data at negedge
 		if (RB_valid[inc(head)] && RB_data_valid[inc(head)]) begin
-				head = inc(head);
-				if (!RB_to_mem[head]) begin:writeToReg
+			head = inc(head);
+			if (RB_inst[head][INST_START:INST_START-OPCODE_WIDTH+1] == INST_BGE) begin
+				we_mem       <= 1'b0;
+				we_reg       <= 1'b0;
+				we_status_wb <= 1'b0;
+			end
+			else if (!RB_to_mem[head]) begin:writeToReg
 					we_mem          = 1'b0;
-					
+
 					we_reg          = 1'b1;
 					wd_reg          = RB_data[head];
 					ws_reg          = RB_Rdest[head];
-
+					
 					we_status_wb       = 1'b1;
 					RB_index_status_wb = READY;
 					Rdest_status_wb    = RB_Rdest[head];
@@ -235,123 +248,13 @@ module reorder_buffer(CDB_data_data, CDB_data_valid, CDB_data_addr, busy,
 			end
 	end
 
-	/*always @(posedge readValidBus(CDB_data_valid,0)) begin
-		RB_data_valid[0] <= 1'b1;
-		RB_data[0] <= readDataBus(CDB_data_data, 0);
-		if (RB_to_mem[0])
-			RB_addr[0] <= readDataBus(CDB_data_addr, 0);
-		else begin end
-	end
-	always @(posedge readValidBus(CDB_data_valid,1)) begin
-		$display("CDB1: ", readDataBus(CDB_data_data, 1));
-		RB_data_valid[1] <= 1'b1;
-		RB_data[1] <= readDataBus(CDB_data_data, 1);
-		if (RB_to_mem[1])
-			RB_addr[1] <= readDataBus(CDB_data_addr, 1);
-		else begin end
-	end
-	always @(posedge readValidBus(CDB_data_valid,2)) begin
-		RB_data_valid[2] <= 1'b1;
-		RB_data[2] <= readDataBus(CDB_data_data, 2);
-		if (RB_to_mem[2])
-			RB_addr[2] <= readDataBus(CDB_data_addr, 2);
-		else begin end
-	end
-	always @(posedge readValidBus(CDB_data_valid,3)) begin
-		RB_data_valid[3] <= 1'b1;
-		RB_data[3] <= readDataBus(CDB_data_data, 3);
-		if (RB_to_mem[3])
-			RB_addr[3] <= readDataBus(CDB_data_addr, 3);
-		else begin end
-	end
-	always @(posedge readValidBus(CDB_data_valid,4)) begin
-		RB_data_valid[4] <= 1'b1;
-		RB_data[4] <= readDataBus(CDB_data_data, 4);
-		if (RB_to_mem[4])
-			RB_addr[4] <= readDataBus(CDB_data_addr, 4);
-		else begin end
-	end
-	always @(posedge readValidBus(CDB_data_valid,5)) begin
-		RB_data_valid[5] <= 1'b1;
-		RB_data[5] <= readDataBus(CDB_data_data, 5);
-		if (RB_to_mem[5])
-			RB_addr[5] <= readDataBus(CDB_data_addr, 5);
-		else begin end
-	end
-	always @(posedge readValidBus(CDB_data_valid,6)) begin
-		RB_data_valid[6] <= 1'b1;
-		RB_data[6] <= readDataBus(CDB_data_data, 6);
-		if (RB_to_mem[6])
-			RB_addr[6] <= readDataBus(CDB_data_addr, 6);
-		else begin end
-	end
-	always @(posedge readValidBus(CDB_data_valid,7)) begin
-		RB_data_valid[7] <= 1'b1;
-		RB_data[7] <= readDataBus(CDB_data_data, 7);
-		if (RB_to_mem[7])
-			RB_addr[7] <= readDataBus(CDB_data_addr, 7);
-		else begin end
-	end
-	always @(posedge readValidBus(CDB_data_valid,8)) begin
-		RB_data_valid[8] <= 1'b1;
-		RB_data[8] <= readDataBus(CDB_data_data, 8);
-		if (RB_to_mem[8])
-			RB_addr[8] <= readDataBus(CDB_data_addr, 8);
-		else begin end
-	end
-	always @(posedge readValidBus(CDB_data_valid,9)) begin
-		RB_data_valid[9] <= 1'b1;
-		RB_data[9] <= readDataBus(CDB_data_data, 9);
-		if (RB_to_mem[9])
-			RB_addr[9] <= readDataBus(CDB_data_addr, 9);
-		else begin end
-	end
-	always @(posedge readValidBus(CDB_data_valid,10)) begin
-		RB_data_valid[10] <= 1'b1;
-		RB_data[10] <= readDataBus(CDB_data_data, 10);
-		if (RB_to_mem[10])
-			RB_addr[10] <= readDataBus(CDB_data_addr, 10);
-		else begin end
-	end
-	always @(posedge readValidBus(CDB_data_valid,11)) begin
-		RB_data_valid[11] <= 1'b1;
-		RB_data[11] <= readDataBus(CDB_data_data, 11);
-		if (RB_to_mem[11])
-			RB_addr[11] <= readDataBus(CDB_data_addr, 11);
-		else begin end
-	end
-	always @(posedge readValidBus(CDB_data_valid,12)) begin
-		RB_data_valid[12] <= 1'b1;
-		RB_data[12] <= readDataBus(CDB_data_data, 12);
-		if (RB_to_mem[12])
-			RB_addr[12] <= readDataBus(CDB_data_addr, 12);
-		else begin end
-	end
-	always @(posedge readValidBus(CDB_data_valid,13)) begin
-		RB_data_valid[13] <= 1'b1;
-		RB_data[13] <= readDataBus(CDB_data_data, 13);
-		if (RB_to_mem[13])
-			RB_addr[13] <= readDataBus(CDB_data_addr, 13);
-		else begin end
-	end
-	always @(posedge readValidBus(CDB_data_valid,14)) begin
-		RB_data_valid[14] <= 1'b1;
-		RB_data[14] <= readDataBus(CDB_data_data, 14);
-		if (RB_to_mem[14])
-			RB_addr[14] <= readDataBus(CDB_data_addr, 14);
-		else begin end
-	end*/
-
 
 	function[REG_INDEX-1:0]	getRdest;
 		input [WORD_SIZE-1:0]	inst;
 		reg [OPCODE_WIDTH-1:0]	op;
 	begin
 		op = inst[WORD_SIZE-1:WORD_SIZE-OPCODE_WIDTH];
-		if (op != INST_LI) 
-			getRdest = inst[RD_START: RD_START-REG_INDEX+1];
-		else 
-			getRdest = inst[RS_START: RS_START-REG_INDEX+1];
+		getRdest = inst[RD_START: RD_START-REG_INDEX+1];
 	end
 	endfunction
 	
@@ -406,6 +309,10 @@ module reorder_buffer(CDB_data_data, CDB_data_valid, CDB_data_addr, busy,
 				fu_start = LOADER_START;
 				fu_num   = LOADER_NUM;
 			end
+			INST_BGE : begin
+				fu_start = BRANCH_START;
+				fu_num 	 = BRANCH_NUM;
+			end
 			default: begin
 				$display($realtime, "fatal: RB is issuing a jump");
 				$finish;
@@ -427,6 +334,13 @@ module reorder_buffer(CDB_data_data, CDB_data_valid, CDB_data_addr, busy,
 		input[RB_INDEX-1:0] ptr;
 	begin
 		inc = (ptr+1)%RB_SIZE;
+	end
+	endfunction
+
+	function[RB_INDEX-1:0] dec;
+		input[RB_INDEX-1:0] ptr;
+	begin
+		dec = (ptr-1)%RB_SIZE;
 	end
 	endfunction
 

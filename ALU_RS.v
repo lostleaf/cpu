@@ -1,6 +1,6 @@
 module ALU_RS(fu, RB_index, inst, vj, vk, qj, qk, 					
 	reg_numj, reg_numk, busy_out, CDB_data_data, CDB_data_valid, 
-	data_bus, valid_bus, RB_index_bus, reset, clk);
+	data_bus, valid_bus, RB_index_bus, reset_bus, clk);
 
 	`include "parameters.v"
 	parameter fuindex = 0;		
@@ -24,8 +24,9 @@ module ALU_RS(fu, RB_index, inst, vj, vk, qj, qk,
 	output	reg [REG_INDEX-1:0]	reg_numj = 'bz, reg_numk = 'bz;
 	// from RB
 
-	input	wire				reset, clk;
+	input	wire				clk;
 	output	wire[FU_NUM-1:0]	busy_out;
+	input	wire[FU_NUM-1:0]	reset_bus;
 	
 	reg[WORD_SIZE-1:0]	Vj, Vk;
 	reg[RB_INDEX-1:0]	Qj, Qk;
@@ -34,11 +35,13 @@ module ALU_RS(fu, RB_index, inst, vj, vk, qj, qk,
 	reg busy;
 	reg[WORD_SIZE-1:0]	result;
 	reg valid;
+	wire reset;
 	
 	assign busy_out[fuindex:fuindex] = busy;
 	assign data_bus[(fuindex+1)*WORD_SIZE-1: fuindex*WORD_SIZE] = result;
 	assign valid_bus[fuindex: fuindex] = valid;
 	assign RB_index_bus[(fuindex+1)*RB_INDEX-1:fuindex*RB_INDEX] = dest;
+	assign reset = reset_bus[fuindex];
 
 	always @(posedge clk or posedge reset) begin
 		//$display($realtime, ": %d busy:%d, sees CDB_inst: %d, %b", busy, fuindex, fu, inst);
@@ -70,42 +73,7 @@ module ALU_RS(fu, RB_index, inst, vj, vk, qj, qk,
 							valid <= 1'b0;
 					end else begin
 					end
-			end else begin/*: execute
-				reg ok;
-				ok = 1'b1;
-				checkAndGetData(Qj, Vj, CDB_data_data, CDB_data_valid, ok);
-				checkAndGetData(Qk, Vk, CDB_data_data, CDB_data_valid, ok);
-				//$display("op = %h, ok = %d, Qj = %d, Vj = %d, Qk = %d, Vk = %d",op, ok, Qj, Vj, Qk, Vk);
-				if (ok) begin
-					case (op)
-						INST_SUB: begin
-							#0.1 result = Vj-Vk;
-						end
-						INST_SUBI: begin
-							#0.1 result = Vj-Vk;
-						end
-						INST_ADD: begin
-							#0.1 result = Vj+Vk;
-						end
-						INST_ADDI: begin
-							#0.1 result = Vj+Vk;
-						end
-						INST_MUL: begin 
-							#(MUL_STALL+0.1) result = Vj*Vk;
-						end
-						INST_MULI: begin
-							#(MUL_STALL+0.1) result = Vj*Vk;
-						end
-						default: begin	end
-					endcase
-					//$display($realtime, "result = %d", result);
-					valid = 1'b1;
-					busy = 1'b0;
-					#1.3 valid = 0'b0;
-					dest = NULL;
-				end
-				else begin end*/
-			end
+			end else begin end
 	end
 	
 	always @(posedge clk) 

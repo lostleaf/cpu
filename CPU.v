@@ -6,7 +6,7 @@
 `include "reg_status.v"
 `include "CDB_data_controller.v"
 `include "reorder_buffer.v"
-`include "load_RS.v"
+//`include "load_RS.v"
 module CPU;
 	`include "parameters.v"
 
@@ -34,7 +34,8 @@ module CPU;
 	// from RB to FU
 	reg [FU_NUM-1:0]	write;
 
-	reg clk, reset;
+	reg clk, reset;			// reset RB, reg_file, CDB_controller, and reg_status
+	wire[FU_NUM-1:0] reset_bus;	// reset FUs
 
 	// not done
 	// for reg
@@ -66,25 +67,25 @@ module CPU;
 		.write_rs_src2(ws_status2), .write_rs_status2(wd_status2), .write_rs_enable2(we_status2),
 		.reset(reset), .clk(clk));
 	
-	ALU_RS alu_rs[FU_NUM-STORER_NUM-LOADER_NUM-1:0](.fu(CDB_inst_fu), .RB_index(CDB_inst_RBindex), .inst(CDB_inst_inst), .vj(vj), .vk(vk), 
+	ALU_RS alu_rs[FU_NUM-STORER_NUM/*-LOADER_NUM*/-1:0](.fu(CDB_inst_fu), .RB_index(CDB_inst_RBindex), .inst(CDB_inst_inst), .vj(vj), .vk(vk), 
 		.qj(qj), .qk(qk), .reg_numj(numj), .reg_numk(numk), .busy_out(busy), 
 		.CDB_data_data(CDB_data_data), .CDB_data_valid(CDB_data_valid), 
-		.data_bus(FU_data_bus), .valid_bus(FU_valid_bus), .RB_index_bus(FU_RB_index_bus),.reset(reset), .clk(clk));
+		.data_bus(FU_data_bus), .valid_bus(FU_valid_bus), .RB_index_bus(FU_RB_index_bus),.reset_bus(reset_bus), .clk(clk));
 
 	store_RS store_rs[STORER_NUM-1:0](.fu(CDB_inst_fu), .RB_index(CDB_inst_RBindex), .inst(CDB_inst_inst), 
 		.vi(vi), .vj(vj), .vk(vk), 
 		.qi(qi), .qj(qj), .qk(qk), .reg_numi(numi), .reg_numj(numj), .reg_numk(numk), .busy_out(busy), 
 		.CDB_data_data(CDB_data_data), .CDB_data_valid(CDB_data_valid), 
 		.data_bus(FU_data_bus), .valid_bus(FU_valid_bus), .addr_bus(FU_addr_bus),
-		.RB_index_bus(FU_RB_index_bus),.reset(reset), .clk(clk));
+		.RB_index_bus(FU_RB_index_bus),.reset_bus(reset_bus), .clk(clk));
 
-	load_RS load_rs[LOADER_NUM-1:0](.fu(CDB_inst_fu), .RB_index(CDB_inst_RBindex), .inst(CDB_inst_inst),
+	/*load_RS load_rs[LOADER_NUM-1:0](.fu(CDB_inst_fu), .RB_index(CDB_inst_RBindex), .inst(CDB_inst_inst),
 		.vj(vj), .vk(vk), .qj(qj), .qk(qk),                  
     	.reg_numj(numj), .reg_numk(numk), .busy_out(busy), 
     	.CDB_data_data(CDB_data_data), .CDB_data_valid(CDB_data_valid),
     	.data_bus(FU_data_bus), .valid_bus(FU_valid_bus), .RB_index_bus(FU_index_bus), 
     	.reset(reset), .clk(clk));
-
+*/
 
 	CDB_data_controller data_ctrl(.CDB_data_data(CDB_data_data), .CDB_data_valid(CDB_data_valid), .CDB_data_addr(CDB_data_addr),
 		.data_bus(FU_data_bus), .valid_bus(FU_valid_bus), .addr_bus(FU_addr_bus),
@@ -97,6 +98,7 @@ module CPU;
 		.CDB_inst_fu(CDB_inst_fu), .CDB_inst_inst(CDB_inst_inst), .CDB_inst_RBindex(CDB_inst_RBindex), 
 		.Rdest_status_issue(ws_status1), .RB_index_status_issue(wd_status1), .we_status_issue(we_status1),
 		.Rdest_status_wb(ws_status2),	 .RB_index_status_wb(wd_status2),	 .we_status_wb(we_status2),
+		.reset_out(reset_bus),
 		.reset(reset), .clk(clk));
 
 	always begin

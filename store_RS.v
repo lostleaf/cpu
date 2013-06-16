@@ -1,6 +1,6 @@
 module store_RS(fu, RB_index, inst,vi, vj, vk, qi, qj, qk, 					
 	reg_numi, reg_numj, reg_numk, busy_out, CDB_data_data, CDB_data_valid,
-	data_bus, valid_bus, addr_bus, RB_index_bus, reset, clk);
+	data_bus, valid_bus, addr_bus, RB_index_bus, reset_bus, clk);
 
 	`include "parameters.v"
 	parameter fuindex = 0, StorerIndex = 0;		
@@ -26,8 +26,9 @@ module store_RS(fu, RB_index, inst,vi, vj, vk, qi, qj, qk,
 	output	reg [REG_INDEX-1:0]	reg_numi = 'bz, reg_numj = 'bz, reg_numk = 'bz;
 	// from RB
 
-	input	wire				reset, clk;
+	input	wire				clk;
 	output	wire[FU_NUM-1:0]	busy_out;
+	input	wire[FU_NUM-1:0]	reset_bus;
 	
 	reg[WORD_SIZE-1:0]	Vi, Vj, Vk;
 	reg[RB_INDEX-1:0]	Qi, Qj, Qk;
@@ -36,12 +37,14 @@ module store_RS(fu, RB_index, inst,vi, vj, vk, qi, qj, qk,
 	reg busy;
 	reg[WORD_SIZE-1:0]	result = 'b0, data = 'b0;
 	reg valid;
+	wire reset;
 	
 	assign busy_out[fuindex:fuindex] = busy;
 	assign addr_bus[(StorerIndex+1)*WORD_SIZE-1: StorerIndex*WORD_SIZE] = result;
 	assign valid_bus[fuindex: fuindex] = valid;
 	assign data_bus[(fuindex+1)*WORD_SIZE-1:fuindex*WORD_SIZE] = data;
 	assign RB_index_bus[(fuindex+1)*RB_INDEX-1:fuindex*RB_INDEX] = dest;
+	assign reset = reset_bus[fuindex];
 
 	always @(posedge clk or posedge reset) begin
 		if (reset) begin
