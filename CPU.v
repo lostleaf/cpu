@@ -6,7 +6,7 @@
 `include "reg_status.v"
 `include "CDB_data_controller.v"
 `include "reorder_buffer.v"
-//`include "load_RS.v"
+`include "load_RS.v"
 module CPU;
     `include "parameters.v"
 
@@ -60,6 +60,21 @@ module CPU;
     wire[WORD_SIZE-1:0] wd_dcache;
     wire[WORD_SIZE-1:0] ws_dcache;
 
+    //for data cache
+    wire cache_read_enable1, cache_read_enable2, cache_read_enable3, cache_write_enable;
+    wire [WORD_SIZE-1:0] cache_ptr_read1, cache_ptr_read2, cache_ptr_read3;
+    wire [WORD_SIZE-1:0] cache_ptr_write, cache_val;
+
+    wire [WORD_SIZE-1:0] cache_out1, cache_out2, cache_out3;
+    wire cache_hit_read1, cache_hit_read2, cache_hit_read3, cache_hit_write;
+
+    data_cache dcache(cache_ptr_read1, cache_ptr_read2, cache_ptr_read3, 
+                      cache_out1,      cache_out2,      cache_out3, 
+                      cache_hit_read1, cache_hit_read2, cache_hit_read3, 
+                      cache_read_enable1, cache_read_enable2, cache_read_enable3,
+                      cache_ptr_write, cache_val, cache_write_enable, cache_hit_write,
+                      clk);
+
     reg_status status(.get_num1(numi), .get_num2(numj), .get_num3(numk), 
         .value1(vi), .value2(vj), .value3(vk), 
         .status1(qi), .status2(qj), .status3(qk),
@@ -91,22 +106,30 @@ module CPU;
         .reg_numj(numj), .reg_numk(numk), .busy_out(busy), 
         .CDB_data_data(CDB_data_data), .CDB_data_valid(CDB_data_valid),
         .data_bus(FU_data_bus), .valid_bus(FU_valid_bus), .RB_index_bus(FU_index_bus), 
-        .reset_bus(reset_bus), .clk(clk));    
+        .reset_bus(reset_bus), .clk(clk),
+        .c_ptr(cache_ptr_read1), .c_out(cache_out1), .c_hit(cache_hit_read1),
+        .c_read_enable(cache_read_enable1)
+        );    
 
-    load_RS load_rs1(.fu(CDB_inst_fu), .RB_index(CDB_inst_RBindex), .inst(CDB_inst_inst),
+    load_RS load_rs2(.fu(CDB_inst_fu), .RB_index(CDB_inst_RBindex), .inst(CDB_inst_inst),
         .vj(vj), .vk(vk), .qj(qj), .qk(qk),                  
         .reg_numj(numj), .reg_numk(numk), .busy_out(busy), 
         .CDB_data_data(CDB_data_data), .CDB_data_valid(CDB_data_valid),
         .data_bus(FU_data_bus), .valid_bus(FU_valid_bus), .RB_index_bus(FU_index_bus), 
-        .reset_bus(reset_bus), .clk(clk));    
+        .reset_bus(reset_bus), .clk(clk),
+        .c_ptr(cache_ptr_read2), .c_out(cache_out2), .c_hit(cache_hit_read2),
+        .c_read_enable(cache_read_enable2)
+        );    
 
-    load_RS load_rs1(.fu(CDB_inst_fu), .RB_index(CDB_inst_RBindex), .inst(CDB_inst_inst),
+    load_RS load_rs3(.fu(CDB_inst_fu), .RB_index(CDB_inst_RBindex), .inst(CDB_inst_inst),
         .vj(vj), .vk(vk), .qj(qj), .qk(qk),                  
         .reg_numj(numj), .reg_numk(numk), .busy_out(busy), 
         .CDB_data_data(CDB_data_data), .CDB_data_valid(CDB_data_valid),
         .data_bus(FU_data_bus), .valid_bus(FU_valid_bus), .RB_index_bus(FU_index_bus), 
-        .reset_bus(reset_bus), .clk(clk));
-
+        .reset_bus(reset_bus), .clk(clk),
+        .c_ptr(cache_ptr_read3), .c_out(cache_out3), .c_hit(cache_hit_read3),
+        .c_read_enable(cache_read_enable3)
+        );    
 
     CDB_data_controller data_ctrl(.CDB_data_data(CDB_data_data), 
         .CDB_data_valid(CDB_data_valid), .CDB_data_addr(CDB_data_addr),

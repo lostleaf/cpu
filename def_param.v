@@ -11,9 +11,9 @@ module def_param;
 	CPU.alu_rs[8].fuindex = 8,
 
 	CPU.store_rs[0].fuindex = 9,	CPU.store_rs[0].StorerIndex = 0,
-	CPU.store_rs[1].fuindex = 10,	CPU.store_rs[1].StorerIndex = 1;
+	CPU.store_rs[1].fuindex = 10,	CPU.store_rs[1].StorerIndex = 1,
 
-	/*CPU.load_rs[0].fuindex = 7,
-	CPU.load_rs[1].fuindex = 8,
-	CPU.load_rs[2].fuindex = 9;*/
+	CPU.load_rs1.fuindex = 11, CPU.load_rs1.StorerIndex = 0,
+	CPU.load_rs2.fuindex = 12, CPU.load_rs2.StorerIndex = 1,
+	CPU.load_rs3.fuindex = 13, CPU.load_rs3.StorerIndex = 2,
 endmodule
