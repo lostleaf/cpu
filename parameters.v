@@ -38,8 +38,8 @@ parameter INST_BGE           = 4'hd;
 //parameter INST_NOP		= 4'hf;
 
 // for FU
-parameter ADDER_NUM     = 4'd3;
-parameter MULTER_NUM    = 4'd2;    // multiplier
+parameter ADDER_NUM     = 4'd4;
+parameter MULTER_NUM    = 4'd4;    // multiplier
 parameter BRANCH_NUM	= 4'b1;
 parameter STORER_NUM    = 4'd2;
 parameter LOADER_NUM    = 4'd3;

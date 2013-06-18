@@ -7,6 +7,8 @@
 `include "CDB_data_controller.v"
 `include "reorder_buffer.v"
 `include "load_RS.v"
+`include "data_cache.v"
+`include "data_memory.v"
 module CPU;
     `include "parameters.v"
 
@@ -105,7 +107,7 @@ module CPU;
         .vj(vj), .vk(vk), .qj(qj), .qk(qk),                  
         .reg_numj(numj), .reg_numk(numk), .busy_out(busy), 
         .CDB_data_data(CDB_data_data), .CDB_data_valid(CDB_data_valid),
-        .data_bus(FU_data_bus), .valid_bus(FU_valid_bus), .RB_index_bus(FU_index_bus), 
+        .data_bus(FU_data_bus), .valid_bus(FU_valid_bus), .RB_index_bus(FU_RB_index_bus), 
         .reset_bus(reset_bus), .clk(clk),
         .c_ptr(cache_ptr_read1), .c_out(cache_out1), .c_hit(cache_hit_read1),
         .c_read_enable(cache_read_enable1)
@@ -115,7 +117,7 @@ module CPU;
         .vj(vj), .vk(vk), .qj(qj), .qk(qk),                  
         .reg_numj(numj), .reg_numk(numk), .busy_out(busy), 
         .CDB_data_data(CDB_data_data), .CDB_data_valid(CDB_data_valid),
-        .data_bus(FU_data_bus), .valid_bus(FU_valid_bus), .RB_index_bus(FU_index_bus), 
+        .data_bus(FU_data_bus), .valid_bus(FU_valid_bus), .RB_index_bus(FU_RB_index_bus), 
         .reset_bus(reset_bus), .clk(clk),
         .c_ptr(cache_ptr_read2), .c_out(cache_out2), .c_hit(cache_hit_read2),
         .c_read_enable(cache_read_enable2)
@@ -125,7 +127,7 @@ module CPU;
         .vj(vj), .vk(vk), .qj(qj), .qk(qk),                  
         .reg_numj(numj), .reg_numk(numk), .busy_out(busy), 
         .CDB_data_data(CDB_data_data), .CDB_data_valid(CDB_data_valid),
-        .data_bus(FU_data_bus), .valid_bus(FU_valid_bus), .RB_index_bus(FU_index_bus), 
+        .data_bus(FU_data_bus), .valid_bus(FU_valid_bus), .RB_index_bus(FU_RB_index_bus), 
         .reset_bus(reset_bus), .clk(clk),
         .c_ptr(cache_ptr_read3), .c_out(cache_out3), .c_hit(cache_hit_read3),
         .c_read_enable(cache_read_enable3)
@@ -163,6 +165,7 @@ module CPU;
         reg[WORD_SIZE-1:0] i;
         $dumpfile("CPU2.vcd");
         $dumpvars;
+        // $display("fu num : ", FU_NUM);
 
         /*$monitor("%g: CDB: 1:<v:%b, d:%g, a:%g>, 2:<v:%b, d:%g, a:%g>, busy: 0:%g, 1:%g",
             $realtime,

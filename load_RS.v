@@ -5,7 +5,7 @@ module load_RS(fu, RB_index, inst, vj, vk,  qj, qk,
     );
 
     `include "parameters.v"
-    parameter fuindex = 0;      
+    parameter fuindex = 0, LoaderIndex = 0;   
     // it's op depends on the design outside on which fuindex corresponds to which op, 
     //and the info is in the <"fu", RB_index, "inst">
 
@@ -38,7 +38,7 @@ module load_RS(fu, RB_index, inst, vj, vk,  qj, qk,
 
     reg[WORD_SIZE-1:0]  Vj, Vk;
     reg[RB_INDEX-1:0]   Qj, Qk;
-    reg[RB_INDEX-1:0]   dest;   
+    reg[RB_INDEX-1:0]   dest;
     reg[OPCODE_WIDTH-1:0]   op;
     reg busy;
     reg[WORD_SIZE-1:0]  result;
@@ -60,6 +60,7 @@ module load_RS(fu, RB_index, inst, vj, vk,  qj, qk,
         end 
         else if (!busy) begin: checkIssue
             #0.1 ;
+            // $display("fu: ", fu);
             if (fu == fuindex) begin
                 $display($realtime, "%m : %d receive inst:%b", fuindex, inst);
                 busy  <= 1'b1;
@@ -67,7 +68,7 @@ module load_RS(fu, RB_index, inst, vj, vk,  qj, qk,
                 op = inst[WORD_SIZE-1:WORD_SIZE-OPCODE_WIDTH];
 
                 if (op === INST_LI) begin
-                    result = inst[RD_START:0];
+                    result = inst[RS_START:0];
                     Qj = READY;
                     Qk = READY;
                 end
@@ -98,7 +99,7 @@ module load_RS(fu, RB_index, inst, vj, vk,  qj, qk,
                     if (op === INST_LW || op === INST_LWRR) begin
                         if (c_read_enable) begin
                             result = c_out;
-                            if (!c_hit) #MEM_STALL:
+                            if (!c_hit) #MEM_STALL;
                             c_read_enable = 1'b0;
                         end
                         else begin
@@ -109,6 +110,7 @@ module load_RS(fu, RB_index, inst, vj, vk,  qj, qk,
                     valid = 1'b1;
                     busy = 1'b0;
                     #1.3 valid = 0'b0;
+                    // $display($realtime, " fu: %d result: %2d", fuindex, result);
                     dest = NULL;
                 end
             end

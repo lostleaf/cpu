@@ -42,7 +42,7 @@ class Assembler
                 @output.puts "%04b_%05b_%05b_%05b_#{'0'*13}" % [inst_code, *opsc]
             when 5..9       #addi..sw
                 @output.puts "%04b_%05b_%05b_%018b" % [inst_code, *opsc]
-                @output.puts "#%04b_%05d_%05d_%018d" % [inst_code, *opsc]
+                # @output.puts "#%04b_%05d_%05d_%018d" % [inst_code, *opsc]
             when 10         #li
                 @output.puts "%04b_%05b_%023b" % [inst_code, *opsc]
             when 11         #j
@@ -62,5 +62,7 @@ class Assembler
     end
 end
 
-ass = Assembler.new(File.open('code.asm', 'r'), File.open('code.bin', 'w'))
+ARGV << "code.asm" << "code.bin" if ARGV.empty?
+
+ass = Assembler.new(File.open(ARGV[0], 'r'), File.open(ARGV[1], 'w'))
 ass.translate
