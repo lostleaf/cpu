@@ -75,6 +75,7 @@ module load_RS(fu, RB_index, inst, vj, vk,  qj, qk,
                 else begin
                     reg_numj = inst[RS_START: RS_START-REG_INDEX+1];
                     getData(vj, qj, Vj, Qj, CDB_data_data, CDB_data_valid);
+                    // $display("%d %d dsfsdfsdf", Vj, Qj);
                     if (op === INST_LWRR) begin
                         reg_numk = inst[RT_START: RT_START-REG_INDEX+1];
                         getData(vk, qk, Vk, Qk, CDB_data_data, CDB_data_valid);
@@ -96,21 +97,28 @@ module load_RS(fu, RB_index, inst, vj, vk,  qj, qk,
                 checkAndGetData(Qj, Vj, CDB_data_data, CDB_data_valid, ok);
                 checkAndGetData(Qk, Vk, CDB_data_data, CDB_data_valid, ok);
                 if (ok) begin
+                    // $display(op , " ok ok ok ");
                     if (op === INST_LW || op === INST_LWRR) begin
                         if (c_read_enable) begin
+                            #0.2;
                             result = c_out;
+                            $display("memory data: ", c_out);
                             if (!c_hit) #MEM_STALL;
                             c_read_enable = 1'b0;
                         end
                         else begin
                             c_read_enable = 1'b1;
                             c_ptr = Vj - Vk;
+                            $display("do something");
+                            ok = 0;
                         end
                     end
+                end
+                if (ok) begin
                     valid = 1'b1;
                     busy = 1'b0;
+                    // $display($realtime, " loader fu: %d freed op = %h", fuindex, op);
                     #1.3 valid = 0'b0;
-                    // $display($realtime, " fu: %d result: %2d", fuindex, result);
                     dest = NULL;
                 end
             end

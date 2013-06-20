@@ -81,7 +81,7 @@ module data_cache(ptr_read1,    ptr_read2,    ptr_read3,
                     in_mem_block  = cache[index_w];
                     mwrite_enable = 1'b1;
                 end
-                #0.1; // necessory?
+                // #0.1; // necessory?
                 mwrite_enable  = 1'b0;
                 dirty[index_w] = 0;
                 valid[index_w] = 1;
@@ -111,7 +111,7 @@ module data_cache(ptr_read1,    ptr_read2,    ptr_read3,
                 read_data(dirty[index_r3], valid[index_r3], tag[index_r3], 
                         data_tag_r3, cache[index_r3], offset_r3, hit_read3, out3,
                         out_mem_block3);
-            $display("h : %b %b %b" , hit_read1, hit_read2, hit_read3);
+            $display("h : %b %d" , hit_read1, out_mem_block1);
         end
     end
 
@@ -137,7 +137,7 @@ module data_cache(ptr_read1,    ptr_read2,    ptr_read3,
                 if (dirty && valid) begin
                     in_mem_block  = cache;
                     mwrite_enable = 1'b1;
-                    #0.1; // necessory?
+                    // #0.1; // necessory?
                     mwrite_enable = 1'b0;
                 end
                 cache = out_mem_block; 

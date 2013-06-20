@@ -97,7 +97,7 @@ module reorder_buffer(CDB_data_data, CDB_data_valid, CDB_data_addr, busy,
 					RB_valid[back] = 1'b1;
 					RB_inst[back] = inst;
 					pc = pc+1;
-					//$display($realtime, "inst: %b", inst);
+					// $display($realtime, "pc : %d, get inst: %b", pc , inst);
 				end 
 			end
 			else begin end
