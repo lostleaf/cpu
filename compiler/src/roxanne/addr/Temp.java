@@ -3,10 +3,13 @@ package roxanne.addr;
 import java.util.LinkedList;
 
 import roxanne.analysis.LiveInterval;
+import roxanne.asm.Asm;
+import roxanne.asm.Asm.Op;
 import roxanne.error.*;
 import roxanne.error.Error;
 import roxanne.env.VarEntry;
 import roxanne.quad.Quad;
+import roxanne.quad.Quad.ConstMode;
 import roxanne.semantic.*;
 import roxanne.types.TYPE;
 import roxanne.translate.Level;
@@ -25,6 +28,8 @@ public class Temp extends Addr implements Constants {
 	
 	public static Temp fp = new Temp(Constants.fp);
 	public static Temp gp = new Temp(Constants.gp);
+	public static Temp sp = new Temp(Constants.sp);
+	public static Temp ra = new Temp(Constants.ra);
 	public static enum TempMode {SU, VAR, ARRAY, POINTER, TEMP};
 	
 	/*
@@ -59,6 +64,8 @@ public class Temp extends Addr implements Constants {
 	public String toString() {
 		if (this == fp) return "$fp";
 		if (this == gp) return "$gp";
+		if (this == sp) return "$sp";
+		if (this == ra) return "$ra";
 		else {
 			if (entry != null)
 				return entry.name.toString();
@@ -116,59 +123,58 @@ public class Temp extends Addr implements Constants {
 	
 	// return the name of its allocated register or the register where it is load to
 	// without sw before use reg
-	public static String genLoadIfNeed(LinkedList<String> strings, Temp temp, int reg, int indexreg) {
-		if (!temp.spilled()) return temp.gen();
+	public static Temp genLoadIfNeed(LinkedList<Asm> strings, Temp temp) {
+		if (!temp.mustBeSpilled()) return temp;
 		
-		String addrName = null;
+		//String addrName = null;
+		Temp ans = temp.level.newTemp(temp.width);
 		if (temp.addr instanceof Temp) {
-			addrName = genLoadIfNeed(strings,(Temp)temp.addr, reg, indexreg);
+			Temp addr = genLoadIfNeed(strings,(Temp)temp.addr);
 			if (temp.index == null || temp.index instanceof Const) {
-				strings.add("\tlw\t"+regNames[reg]+", "+Quad.genAddress(strings, (Const)temp.index, addrName, reg));
+				Addr index = Quad.genBeforeUseConst(strings, new Const(-((Const)temp.index).value), temp.level, ConstMode.PCOFFSET);
+				strings.add(new Asm(Op.lw, ans, addr, index));
 			} else {
 				//temp.index instanceof Temp
-				String indexName = genLoadIfNeed(strings, (Temp)temp.index, indexreg, a0);
-				strings.add("\tlwrr\t"+regNames[reg]+", "+Quad.genAddress(addrName, indexName));
+				Temp index = genLoadIfNeed(strings, (Temp)temp.index);
+				strings.add(new Asm(Op.lwrr, ans, addr, index));
 			}
-		} else {
+		} /*else {
 			System.out.println("test: "+temp.getRegister());
 			assert(temp.index == null); 	// addr is label or const
-			addrName = temp.addr.gen();
-			strings.add("\tlw\t"+regNames[reg]+", "+addrName);
-		}
-		return regNames[reg];
+			//addrName = temp.addr.gen();
+			strings.add(new Asm(Op.lw, ans, temp.addr, null));
+		}*/
+		return ans;
 	}
 	
-	public LinkedList<String> genBeforeUse(int regForTemp, int regForIndex) {
-		LinkedList<String> strings = new LinkedList<String>();
-		
-		genLoadIfNeed(strings, this, regForTemp, regForIndex);
-		
-		return strings;
+	public Temp genBeforeUse(LinkedList<Asm> strings) {
+		return genLoadIfNeed(strings, this);
 	}
 		
 	
-	public LinkedList<String> genAfterDef(int regForTemp, int regForAddr, int regForIndex) {
+	public LinkedList<Asm> genAfterDef(Temp storeDst) {
 		// replaceRegNum must be three, use $t0 if needed for the address;
 		/*
 		 * if addr needs load, load addr using regForAddr
 		 * sw	$tn, index(addr)	// $tn is $regForTemp
 		 */
-		LinkedList<String> strings = new LinkedList<String>();
+		LinkedList<Asm> strings = new LinkedList<Asm>();
 		
-		String addrName = null;
+		//String addrName = null;
 		if (addr instanceof Temp) {
-			addrName = genLoadIfNeed(strings, (Temp)addr, regForAddr,regForIndex);
-			if (index ==  null || index instanceof Const)
-				strings.add("\tsw\t"+regNames[regForTemp]+", "+Quad.genAddress(strings, (Const)index, addrName, regForAddr));
-			else {
-				String indexName = genLoadIfNeed(strings, (Temp)index, regForIndex, a0);
-				strings.add("\tswrr\t"+regNames[regForTemp]+", "+Quad.genAddress(addrName, indexName));
+			Temp newAddr = genLoadIfNeed(strings, (Temp)addr);
+			if (index ==  null || index instanceof Const) {
+				Addr newIndex = Quad.genBeforeUseConst(strings, new Const(-((Const)index).value), level, ConstMode.PCOFFSET);
+				strings.add(new Asm(Op.sw, storeDst, newAddr, newIndex));
+			} else {
+				Temp newIndex = genLoadIfNeed(strings, (Temp)index);
+				strings.add(new Asm(Op.swrr, storeDst, newAddr, newIndex));
 			}
-		} else {
+		} /*else {
 			assert(index == null); 	// addr is label or const
 			addrName = addr.gen();
 			strings.add("\tsw\t"+regNames[regForTemp]+", "+addrName);
-		}
+		}*/
 		
 		return strings;		
 	}

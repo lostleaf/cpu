@@ -3,6 +3,8 @@ package roxanne.quad;
 import java.util.LinkedList;
 
 import roxanne.addr.Label;
+import roxanne.asm.Asm;
+import roxanne.asm.Asm.Op;
 import roxanne.error.Error;
 
 public class Goto extends Quad {
@@ -23,10 +25,10 @@ public class Goto extends Quad {
 	}
 
 	@Override
-	public LinkedList<String> gen() throws Error {
-		LinkedList<String> strings = new LinkedList<String>();
-		strings.add("\tj\t"+label.label.gen());
-		return strings;
+	public LinkedList<Asm> gen() throws Error {
+		LinkedList<Asm> asms = new LinkedList<Asm>();
+		asms.add(new Asm(Op.j, label.label, null, null));
+		return asms;
 	}
 
 	//for DefReach

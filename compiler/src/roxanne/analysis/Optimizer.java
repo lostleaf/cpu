@@ -1,7 +1,9 @@
 package roxanne.analysis;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 
+import roxanne.asm.Asm;
 import roxanne.quad.Quad;
 import roxanne.translate.CompilationUnit;
 
@@ -9,10 +11,8 @@ public class Optimizer {
 	private static CompilationUnit unit;
 	private static ArrayList<BasicBlock> blocks;
 	
-	public static void optimize(CompilationUnit cu) {
-		unit = cu;
-		blocks = BasicBlockBuilder.createBBGraph(cu);
-		CopyPropagater copy = new CopyPropagater(blocks);
+	public static void optimize(LinkedList<Asm> asmList) {
+		blocks = BasicBlockBuilder.createBBGraph(asmList);
 		boolean changed = false;
 		do {
 			changed = copy.propagate();

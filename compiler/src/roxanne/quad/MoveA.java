@@ -7,6 +7,7 @@ import roxanne.addr.Addr;
 import roxanne.addr.Const;
 import roxanne.addr.Label;
 import roxanne.addr.Temp;
+import roxanne.asm.Asm;
 import roxanne.error.Error;
 
 public class MoveA extends Quad {
@@ -37,7 +38,7 @@ public class MoveA extends Quad {
 		strings.add("\tla\t"+regNames[reg]+", "+ num.gen());
 	}
 	
-	static void genWhenSpillDst(LinkedList<String> strings, Addr dstAddr, Addr index, Label src) {
+	/*static void genWhenSpillDst(LinkedList<String> strings, Addr dstAddr, Addr index, Label src) {
 		genBeforeLoadLabel(strings, src, k0);
 		if (dstAddr instanceof Temp) {
 			String dstAddrName = genBeforeUse(strings, (Temp)dstAddr, k1, a1);
@@ -51,7 +52,7 @@ public class MoveA extends Quad {
 			assert(index == null);
 			strings.add("\tsw\t"+regNames[k0]+", "+dstAddr.gen());
 		}
-	}
+	}*/
 	
 	@Override
 	/*
@@ -61,14 +62,14 @@ public class MoveA extends Quad {
 	 * 	sw	k0,	dst.index(dst.addr(k1))
 	 * 
 	 */
-	public LinkedList<String> gen() throws Error {
-		LinkedList<String> strings = new LinkedList<String>();
+	public LinkedList<Asm> gen() throws Error {
+		LinkedList<Asm> strings = new LinkedList<Asm>();
 
-		if (!dst.spilled())
+		/*if (!dst.spilled())
 			strings.add("\tla\t"+dst.gen()+", "+src.gen());
 		else {	// dst.spilled, src must be loaded before sw
 			genWhenSpillDst(strings, dst.addr, dst.index, src);
-		}
+		}*/
 		
 		return strings;
 	}

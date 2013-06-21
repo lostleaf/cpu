@@ -9,6 +9,7 @@ import java.util.ListIterator;
 import roxanne.addr.Addr;
 import roxanne.addr.Const;
 import roxanne.addr.Temp;
+import roxanne.asm.Asm;
 import roxanne.quad.*;
 import roxanne.translate.CompilationUnit;
 import roxanne.translate.SizeHandler;
@@ -132,7 +133,7 @@ class DefReach{
 		calcBBInOutEach();
 	}
 	
-	boolean kill(LinkedHashSet<Temp> def, Quad q) {
+	boolean kill(LinkedHashSet<Temp> def, Asm q) {
 		if (q.def().containsAll(def)) return true;
 		return false;
 	}
@@ -173,19 +174,19 @@ class DefReach{
 	void calcBBKillGenEach() {
 		BasicBlock block = null;
 		for (int i = 0; i < blocks.size(); ++i)  {
-			blocks.get(i).DRGen = new LinkedHashSet<Quad>();
+			blocks.get(i).DRGen = new LinkedHashSet<Asm>();
 			blocks.get(i).def = new LinkedHashSet<Temp>();
 		}
 		
-		Quad q = null;
+		Asm a = null;
 		for (int i = 1; i < blocks.size(); ++i) {
 			block = blocks.get(i);
-			Iterator<Quad> iter = block.quads.descendingIterator();
+			Iterator<Asm> iter = block.asms.descendingIterator();
 			while (iter.hasNext()) {
-				q = iter.next();
-				if (q.isDef() && !kill(block.def, q)) {
-					block.DRGen.add(q);
-					block.def.addAll(q.def());
+				a = iter.next();
+				if (a.isDef() && !kill(block.def, a)) {
+					block.DRGen.add(a);
+					block.def.addAll(a.def());
 				}
 			}
 		}

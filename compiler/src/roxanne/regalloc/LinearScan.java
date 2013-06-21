@@ -11,6 +11,7 @@ import java.util.TreeSet;
 import roxanne.addr.Temp;
 import roxanne.analysis.LiveInterval;
 import roxanne.analysis.LivenessAnalysis;
+import roxanne.asm.Asm;
 import roxanne.error.Error;
 import roxanne.translate.CompilationUnit;
 import roxanne.translate.Level;
@@ -23,29 +24,7 @@ public class LinearScan implements RegAlloc, Comparator<LiveInterval>{
 
 	public LinearScan() {
 	}
-	
-	public void bindRegister(LinkedList<CompilationUnit> units) throws Error {
-		LivenessAnalysis analyzer = null;
-		freeregs.clear();
-		for (int i = 0; i < R; ++i)
-			freeregs.add(i+baseOfSavedRegisters);
-
-		analyzer = new LivenessAnalysis(units);
-		active.clear();
-		usedRegs.clear();
 		
-		for (LiveInterval i: analyzer.getLiveIntervals()) {
-			expireOldInterval(i);
-			if (active.size() == R || i.getTemp().mustBeSpilled())
-				spillAtInterval(i, i.getTemp().level);
-			else {
-				i.bind(getFreeRegister());
-				active.add(i);
-			}
-			//System.out.println(i);
-		}
-	}
-	
 	private Integer getFreeRegister() {
 		Integer reg = freeregs.pollFirst();
 		usedRegs.add(reg);
@@ -80,6 +59,29 @@ public class LinearScan implements RegAlloc, Comparator<LiveInterval>{
 	@Override
 	public int compare(LiveInterval i0, LiveInterval i1) {
 		return i0.getEndPoint() - i1.getEndPoint();
+	}
+
+	@Override
+	public void bindRegister(LinkedList<Asm> asms) throws Error {
+		LivenessAnalysis analyzer = null;
+		freeregs.clear();
+		for (int i = 0; i < R; ++i)
+			freeregs.add(i+baseOfSavedRegisters);
+
+		analyzer = new LivenessAnalysis(asms);
+		active.clear();
+		usedRegs.clear();
+		
+		for (LiveInterval i: analyzer.getLiveIntervals()) {
+			expireOldInterval(i);
+			if (active.size() == R || i.getTemp().mustBeSpilled())
+				spillAtInterval(i, i.getTemp().level);
+			else {
+				i.bind(getFreeRegister());
+				active.add(i);
+			}
+			//System.out.println(i);
+		}
 	}
 
 }

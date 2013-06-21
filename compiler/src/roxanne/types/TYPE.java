@@ -1,8 +1,9 @@
 package roxanne.types;
 
 import roxanne.addr.Addr;
+import roxanne.util.*;
 
-public abstract class TYPE {
+public abstract class TYPE implements Constants{
 	abstract public TYPE actual();
 	protected Addr width = null;
 	public abstract Addr getWidth();

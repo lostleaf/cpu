@@ -10,7 +10,10 @@ import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.Set;
 
+import roxanne.addr.Label;
 import roxanne.addr.Temp;
+import roxanne.asm.Asm;
+import roxanne.asm.Asm.Op;
 import roxanne.quad.Goto;
 import roxanne.quad.LABEL;
 import roxanne.quad.Leave;
@@ -19,22 +22,24 @@ import roxanne.quad.Ret;
 import roxanne.translate.CompilationUnit;
 
 public class BasicBlockBuilder {
-	private static LinkedList<Quad> quads;
+	private static LinkedList<Asm> asms;
 	private static ArrayList<BasicBlock> blocks = new ArrayList<BasicBlock>();
-	private static Hashtable<Quad, BasicBlock> leaders = new Hashtable<Quad, BasicBlock>();
+	private static Hashtable<Asm, BasicBlock> leaders = new Hashtable<Asm, BasicBlock>();
 	
 	
 	private static void findLeader() {
 		boolean isLeader = true;
-		for (Quad quad: quads) {
+		for (Asm asm: asms) {
 			if (isLeader) {
-				quad.isLeader = true;
+				asm.isLeader = true;
 				isLeader = false;
 			}
-			if (quad.isJump()) {
-				LABEL label = quad.jumpLABEL();
-				if (label != null)
-					label.isLeader = true;
+			if (asm.isJump()) {
+				Label label = asm.jumpLabel();
+				if (label != null) {
+					Asm labelAsm = find(label);
+					labelAsm.isLeader = true;
+				}
 				isLeader = true;
 			}
 		}
@@ -44,14 +49,14 @@ public class BasicBlockBuilder {
 		BasicBlock exit = new BasicBlock(), bb = null;
 		blocks.add(exit);
 		
-		for (Quad quad: quads) {
-			if (quad.isLeader) {
+		for (Asm asm: asms) {
+			if (asm.isLeader) {
 				bb = new BasicBlock();
 				blocks.add(bb);
-				bb.add(quad);
-				leaders.put(quad, bb);
+				bb.add(asm);
+				leaders.put(asm, bb);
 			} else 
-				bb.add(quad);
+				bb.add(asm);
 		}
 	}
 	
@@ -64,7 +69,7 @@ public class BasicBlockBuilder {
 		int len = blocks.size();
 		for (int i = 0 ;i  < len; ++i) {
 			System.out.println("bb["+i+"]:"+blocks.get(i));
-			for (Quad quad: blocks.get(i).quads) {
+			for (Asm quad: blocks.get(i).asms) {
 				System.out.println("\t" + quad);
 			}
 			System.out.println("pre: "+blocks.get(i).pre);
@@ -76,11 +81,11 @@ public class BasicBlockBuilder {
 	}
 	
 	// BB for basic block
-	public static ArrayList<BasicBlock> createBBGraph(CompilationUnit unit) {
+	public static ArrayList<BasicBlock> createBBGraph(LinkedList<Asm> asmList) {
 		blocks.clear();
 		leaders.clear();
 		
-		quads = unit.quads;
+		asms = asmList;
 		
 		findLeader();
 		buildBlocks();
@@ -90,14 +95,14 @@ public class BasicBlockBuilder {
 		int len = blocks.size();
 		for (int i = 1; i < len; ++i) {
 			bb = blocks.get(i);
-			Quad last = bb.getLast();
-			if (last instanceof Goto) 
-				addEdge(bb, leaders.get(last.jumpLABEL()));
-			else if (last instanceof Ret || last instanceof Leave)
+			Asm last = bb.getLast();
+			if (i == len-1 || last.op == Op.jr)
 				addEdge(bb, exit);
+			else if (last.op == Op.j) 
+				addEdge(bb, leaders.get(find(last.jumpLabel())));
 			else if (last.isJump()) {
 				addEdge(bb, blocks.get(i+1));
-				addEdge(bb, leaders.get(last.jumpLABEL()));
+				addEdge(bb, leaders.get(find(last.jumpLabel())));
 			} else {
 				// all jump is last, but last may not be a jump
 				if (i+1 < len)
@@ -105,6 +110,39 @@ public class BasicBlockBuilder {
 			}
 				
 		}
+		
+		/*boolean changed = false;
+		boolean BBChanged = false;
+		int len = blocks.size();
+		BasicBlock now = null;
+		do {
+			changed = false;
+			for (int i = 1; i < len; ++i) {
+				now = blocks.get(i);
+				for (BasicBlock next: now.next) {
+					now.out.addAll(next.in);
+				}
+				LinkedHashSet<Temp> newin = (LinkedHashSet<Temp>) now.out.clone();
+				Killer.kill(newin, now.def());
+				newin.addAll(now.use());
+				
+				if (!newin.equals(now.in)) {
+					now.in = newin;
+					changed = true;
+					BBChanged = true;
+				}
+			}
+		} while(changed);
+		
+		return BBChanged;*/
 		return blocks;
+	}
+	
+	private static Asm find(Label label) throws Error{
+		for (Asm asm: asms) {
+			if (asm.op == Op.label && asm.dst == label) 
+				return asm;
+		}
+		throw new Error("label not find");
 	}
 }

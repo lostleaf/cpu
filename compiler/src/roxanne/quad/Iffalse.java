@@ -4,6 +4,8 @@ import java.util.LinkedHashSet;
 import java.util.LinkedList;
 
 import roxanne.addr.*;
+import roxanne.asm.Asm;
+import roxanne.asm.Asm.Op;
 import roxanne.error.Error;
 
 public class Iffalse extends Quad {
@@ -35,14 +37,12 @@ public class Iffalse extends Quad {
 	}
 
 	@Override
-	public LinkedList<String> gen() throws Error {
-		LinkedList<String> strings = new LinkedList<String>();
-
-		String c = genBeforeUse(strings, cond, k0, k1);
-		strings.add("\tbeqz\t"+c+", "+label.label.gen());
-
-		return strings;
-	}	
+	public LinkedList<Asm> gen() throws Error {
+		LinkedList<Asm> asms = new LinkedList<Asm>();
+		Temp c = genBeforeUse(asms, cond);
+		asms.add(new Asm(Op.beqz, c, label.label, null));
+		return asms;
+	}
 
 	//for DefReach
 	public boolean isDef() {

@@ -26,11 +26,13 @@ public interface Constants {
 		"addiu", "subu", "mul", "divu", "seq", "sne", "slt", "sle", "sgt", "sge"
 	};
 	
-	static final int wordSize = 4;
+	static final int wordSize = 1;
 
-	static int baseOfSavedRegisters = 6;	// start from $a2
-	static int numOfSavedRegisters = 20;	// number of saved registers, including $a0, $a1, $a2, $a3
+	static int baseOfSavedRegisters = 4;	// start from $a0
+	static int numOfSavedRegisters = 22;	// number of saved registers, including $a0, $a1, $a2, $a3
+	static int ra = 31;
 	static int fp = 30;
+	static int sp = 29;
 	static int gp = 28;
 	static int k0 = 26;						// index of $k0, for spilled temp
 	static int k1 = 27;						// index of $k1, for spilled temp

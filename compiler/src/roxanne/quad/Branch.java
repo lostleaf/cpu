@@ -4,7 +4,10 @@ import java.util.LinkedHashSet;
 import java.util.LinkedList;
 
 import roxanne.addr.*;
+import roxanne.asm.Asm;
 import roxanne.ast.Expr.OpType;
+import roxanne.error.Error;
+import roxanne.quad.Quad.ConstMode;
 
 public class Branch extends Quad {
 	public Temp left;
@@ -51,17 +54,17 @@ public class Branch extends Quad {
 	 * if both spilled or right is const
 	 * if bop k0, k1, label
 	 */
-	public LinkedList<String> gen() throws roxanne.error.Error {
-		LinkedList<String> strings = new LinkedList<String>();
+	public LinkedList<Asm> gen() throws Error {
+		LinkedList<Asm> asms = new LinkedList<Asm>();
 		
-		String l = null, r = null;
-		
+		Temp l = genBeforeUse(asms, left);
+		Addr r = null;
 		if (right instanceof Temp)
-			r = genBeforeUse(strings, (Temp)right, k1, k0);
-		else r = genBeforeUseConst(strings, (Const)right, k1, ConstMode.BR);
-		l = genBeforeUse(strings, left,k0, a1);
+			r = genBeforeUse(asms, (Temp)right);
+		else
+			r = genBeforeUseConst(asms, (Const)right, left.level, ConstMode.BR);
 		
-		strings.add("\tb"+getBranchOp(op)+"\t"+l+", "+r+", "+label.label.gen());
-		return strings;
-	}
+		asms.add(new Asm(getBranchOp(op), l, r, label.label));
+		return asms;
+	}	
 }

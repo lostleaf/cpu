@@ -6,13 +6,14 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 
 import roxanne.addr.Temp;
+import roxanne.asm.Asm;
 import roxanne.quad.*;
 
 public class BasicBlock {
 	private static int count = 0;
 	public int num;
-	
-	public LinkedList<Quad> quads = new LinkedList<Quad>();
+
+	public LinkedList<Asm> asms = new LinkedList<Asm>();
 	public LinkedHashSet<BasicBlock> pre = new LinkedHashSet<BasicBlock>();
 	public LinkedHashSet<BasicBlock> next = new LinkedHashSet<BasicBlock>();
 	public LinkedHashSet<Temp> in = new LinkedHashSet<Temp>();
@@ -21,17 +22,17 @@ public class BasicBlock {
 	public LinkedHashSet<Temp> use = null;
 	
 	// for reachdef
-	public LinkedHashSet<Quad> DRGen = new LinkedHashSet<Quad>();
+	public LinkedHashSet<Asm> DRGen = new LinkedHashSet<Asm>();
 	// kill is just the def;
-	public LinkedHashSet<Quad> DRin = new LinkedHashSet<Quad>();
-	public LinkedHashSet<Quad> DRout = new LinkedHashSet<Quad>();
+	public LinkedHashSet<Asm> DRin = new LinkedHashSet<Asm>();
+	public LinkedHashSet<Asm> DRout = new LinkedHashSet<Asm>();
 	
 	public BasicBlock() {
 		num = count++;
 	}
 	
-	public void add(Quad q) {
-		quads.add(q);
+	public void add(Asm q) {
+		asms.add(q);
 	}
 	
 	public void addPre(BasicBlock bb) {
@@ -41,8 +42,8 @@ public class BasicBlock {
 		next.add(bb);
 	}
 	
-	public Quad getLast() {
-		return quads.getLast();
+	public Asm getLast() {
+		return asms.getLast();
 	}
 	
 	private void calcUseDef() {
@@ -54,7 +55,7 @@ public class BasicBlock {
 		
 		//LinkedHashSet<Temp> quse = new LinkedHashSet<Temp>();
 		
-		for (Quad q:quads) {
+		for (Asm q:asms) {
 			for (Temp t: q.use()) {
 				if (!def.contains(t))
 					use.add(t);
@@ -74,9 +75,9 @@ public class BasicBlock {
 	
 	public void calcInOutUseDef() {
 		calcUseDef();
-		quads.getLast().out = out;
-		Iterator<Quad> iter = quads.descendingIterator();
-		Quad q = null, nextq = null;
+		asms.getLast().out = out;
+		Iterator<Asm> iter = asms.descendingIterator();
+		Asm q = null, nextq = null;
 		
 		nextq = q = iter.next();
 		q.in = (LinkedHashSet<Temp>)q.out.clone();
@@ -107,7 +108,7 @@ public class BasicBlock {
 	public String toString() {
 		StringBuffer str = new StringBuffer();
 		str.append("===============================\n");
-		for (Quad q:quads) 
+		for (Asm q:asms) 
 			str.append("\t"+q+"\n");
 		//str.append("\tpre: "+ pre+"\n");
 		//str.append("\tnext: "+ next+"\n");

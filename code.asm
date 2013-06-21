@@ -1,3 +1,5 @@
+#   .text
+#   .globl main
 main:
 addi $a0, $fp, 0
 addi $a1, $fp, 6
@@ -35,3 +37,5 @@ L2:
 addi $a3, $a3, 1
 j L1
 L0:
+
+

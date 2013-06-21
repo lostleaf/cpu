@@ -292,7 +292,7 @@ public class Translator implements Constants{
 				} else {
 					offset = level.newLocal(((ARRAY)p.idtype).size);
 					Temp arrayAddress = level.newTemp(new Const(wordSize));
-					makeBiop(arrayAddress, fpgp(isGlobal()),OpType.MINUS, offset);
+					makeBiop(arrayAddress, fpgp(isGlobal()),OpType.PLUS, offset);
 					ve = new VarEntry(p.idtype, p.sym, offset, fpgp(isGlobal()), arrayAddress);
 					t.addr = fpgp(isGlobal()); t.index = offset; t.entry = ve;
 					if (isGlobal()) 
@@ -786,7 +786,7 @@ public class Translator implements Constants{
 	private void setExprWithAddrIndex(Expr e, Addr addr, Addr index, EMode m, LABEL yes, LABEL no) throws Error {
 		Addr setaddr = addr;
 		if ((index instanceof Const && addr instanceof Const)) {
-			setaddr = makeBiop(null, addr, OpType.MINUS, index);
+			setaddr = makeBiop(null, addr, OpType.PLUS, index);
 			index = null;
 		} else if (index instanceof Temp && addr instanceof Const) {
 			Addr t = index; index = addr; addr = t;
@@ -951,9 +951,9 @@ public class Translator implements Constants{
 		if (dst != null && !(dst instanceof Temp)) throw new Error("dst not temp in makeBiop in translator");
 		
 		Addr optimizedAns = null;
-		if (op == OpType.PLUS && isZero(l)||isZero(r)) {
+		/*if (op == OpType.PLUS && isZero(l)||isZero(r)) {
 			optimizedAns = (isZero(l))? r:l;
-		} else if (op == OpType.TIMES) {
+		} else*/ if (op == OpType.TIMES) {
 			if ((isN(l,1) || isN(r, 1)))
 				optimizedAns = (isN(l, 1))? r:l;
 			else if (isN(l, 2) || isN(r, 2))
@@ -1101,12 +1101,10 @@ public class Translator implements Constants{
 			if (e.type instanceof ARRAY)
 				width =  ((ARRAY)e.type).size;
 			else width = e.type.getWidth();
-			index = Addr.biop(r, OpType.TIMES, width, level);
-			if (index instanceof Temp)
-				emit(Quad.makeBiop((Temp)index, r, OpType.TIMES, width));
+				index = makeBiop(null, r, OpType.TIMES, width);
 			
 			if (e.type instanceof ARRAY) {
-				e.addr = makeBiop(e.addr, e.left.addr, OpType.MINUS, index);
+				e.addr = makeBiop(e.addr, e.left.addr, OpType.PLUS, index);
 				emitBranch(null, e.addr, null, yes, no);
 			} else 
 				setExprWithAddrIndex(e, e.left.addr, index, m, yes, no);	//??
