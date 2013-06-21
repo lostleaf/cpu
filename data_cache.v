@@ -60,6 +60,7 @@ module data_cache(ptr_read1,    ptr_read2,    ptr_read3,
     end
 
     always @(posedge clk) begin
+
         if (write_enable) begin
             if (tag[index_w] == data_tag_w && valid[index_w]) begin 
                 hit_write      = 1;
@@ -95,6 +96,7 @@ module data_cache(ptr_read1,    ptr_read2,    ptr_read3,
                     //shift to original place
                         << ((15 - offset_w) * WORD_SIZE)
                     ) ^ cache[index_w];
+                $display(cache[0]);
             end
         end
 
@@ -113,6 +115,8 @@ module data_cache(ptr_read1,    ptr_read2,    ptr_read3,
                         out_mem_block3);
             // $display("h : %b %d" , hit_read1, out_mem_block1);
         end
+        // $display(cache[0]);
+
     end
 
     task read_data;

@@ -64,6 +64,7 @@ module reorder_buffer(CDB_data_data, CDB_data_valid, CDB_data_addr, busy,
 	
 
 	always @(posedge clk or posedge reset) begin
+		// $display($realtime);
 		if (reset) begin:rst
 			reg [WORD_SIZE-1:0]	i;
 			for (i = 0; i <  RB_SIZE; i = i + 1) begin

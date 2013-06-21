@@ -95,7 +95,7 @@ module store_RS(fu, RB_index, inst,vi, vj, vk, qi, qj, qk,
 				checkAndGetData(Qk, Vk, CDB_data_data, CDB_data_valid, ok);
 				checkAndGetData(Qi, Vi, CDB_data_data, CDB_data_valid, ok);
 				if (ok) begin
-					#0.1 result = Vj-Vk;
+					#0.1 result = Vj+Vk;
 					data = Vi;
 					valid = 1'b1;
 					busy = 1'b0;
