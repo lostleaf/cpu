@@ -20,7 +20,7 @@ parameter RT_START           = 17;
 parameter IMM_START          = 17;
 parameter J_PCOFFSET_START   = 27;
 parameter BGE_IMM_START      = 22;
-parameter BGE_PCOFFSET_START = 9;
+parameter BGE_PCOFFSET_START = 12;
 parameter INST_ADD           = 4'h0;
 parameter INST_SUB           = 4'h1;
 parameter INST_MUL           = 4'h2;
@@ -35,11 +35,12 @@ parameter INST_LI            = 4'ha;
 parameter INST_J             = 4'hb;
 parameter INST_JR            = 4'hc;
 parameter INST_BGE           = 4'hd;
+parameter INST_HALT          = 4'he;
 //parameter INST_NOP		= 4'hf;
 
 // for FU
-parameter ADDER_NUM     = 4'd3;
-parameter MULTER_NUM    = 4'd2;    // multiplier
+parameter ADDER_NUM     = 4'd4;
+parameter MULTER_NUM    = 4'd4;    // multiplier
 parameter BRANCH_NUM	= 4'b1;
 parameter STORER_NUM    = 4'd2;
 parameter LOADER_NUM    = 4'd3;

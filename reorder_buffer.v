@@ -81,7 +81,8 @@ module reorder_buffer(CDB_data_data, CDB_data_valid, CDB_data_addr, busy,
 			#0.1 reset_out	= 'b0;
 		end
 		else 
-			if (notFull(head, back))  begin: IF
+			// $display(RB_inst[back][31:28]);
+			if (notFull(head, back) && RB_inst[back][31:28] !== INST_HALT)  begin: IF
 				cache_enable = 1;
 				//$display($realtime, "inst = %b", inst);
 				#0.5 if (hit) begin
@@ -90,14 +91,14 @@ module reorder_buffer(CDB_data_data, CDB_data_valid, CDB_data_addr, busy,
 					#(MEM_STALL-1) begin end
 				end
 				if (inst[WORD_SIZE-1:WORD_SIZE-OPCODE_WIDTH] === INST_J)
-					pc = pc+inst[J_PCOFFSET_START:0];
+					pc = inst[J_PCOFFSET_START:0];
 				else begin:addInst
 					back = inc(back);
 					//RB_PC[back] = pc;
 					RB_valid[back] = 1'b1;
 					RB_inst[back] = inst;
+					$display($realtime, "pc : %d, get inst: %b", pc , inst);
 					pc = pc+1;
-					//$display($realtime, "inst: %b", inst);
 				end 
 			end
 			else begin end
@@ -115,6 +116,10 @@ module reorder_buffer(CDB_data_data, CDB_data_valid, CDB_data_addr, busy,
 			free = 1'b0;
 			/*if (op == INST_BGE) 
 				$display("start = %d, end = %d", i, fuend);)*/
+			if (op === INST_HALT) begin
+				free = 1'b1;
+				tail = inc(tail);
+			end
 			for (i = i; i <= fuend && !free; i = i+1) begin
 				if (!busy[i]) begin
 					tail                = inc(tail);
@@ -145,7 +150,9 @@ module reorder_buffer(CDB_data_data, CDB_data_valid, CDB_data_addr, busy,
 				CDB_inst_fu = NO_FU;
 			end
 			else begin
-				if (op != INST_SW && op != INST_SWRR && op != INST_BGE) begin	//j or jr will not in RB, branch will set free = 0;
+				if (op != INST_SW && op != INST_SWRR && op != INST_BGE && op != INST_HALT) begin
+					//j or jr will not in RB, branch will set free = 0;
+					$display("%b %b", RB_inst[tail], op);
 					Rdest_status_issue    = getRdest(RB_inst[tail]);
 					we_status_issue       = 1'b1;
 					RB_index_status_issue = tail;
@@ -161,44 +168,55 @@ module reorder_buffer(CDB_data_data, CDB_data_valid, CDB_data_addr, busy,
 	end
 
 	always @(negedge clk) begin: updateCDB
-		reg [WORD_SIZE-1:0] i;
+		reg [WORD_SIZE-1:0] i, target;
 		reg hasBranch;
 		reg [RB_INDEX-1:0]	mark;
 		reg [OPCODE_WIDTH-1:0]	op;
 
 		hasBranch  = 1'b0;
-		#0.1 for (i = head; i != inc(tail); i = inc(i)) begin
+		#0.1 for (i = head; i != inc(tail); i = (i + 1) % RB_SIZE ) begin
+			// $display("%d %b", readValidBus(CDB_data_valid, i), RB_inst[i]);
 			if (readValidBus(CDB_data_valid, i)) begin
-				op = RB_inst[i][INST_START:INST_START-OPCODE_WIDTH+1];
+				op               = RB_inst[i][INST_START:INST_START-OPCODE_WIDTH+1];
 				RB_data[i]       = readDataBus(CDB_data_data, i);
 				RB_data_valid[i] = 1'b1;
+			// $display($realtime, "  rb data valid ", head, "   ", tail, "  ", i);
 				if (RB_to_mem[i] || op == INST_BGE) 
 					RB_addr[i] = readDataBus(CDB_data_addr, i);
 				if (op == INST_BGE) begin
+					// $display("find branch");
 					hasBranch = 1'b1;
-					mark = i;
+					mark      = i;
+					target    = RB_inst[i][12:0];
 				end
 			end
 		end
 
 		if (hasBranch) begin: updatePCAndResetIfNeed
-			if (!RB_data[mark]) begin end
-			else begin
-				pc = CDB_data_addr;
+			// $display("branch taken? %b", RB_data[mark]);
+			if (RB_data[mark]) begin
+				pc = target;
 				for (i = mark; i != inc(tail); i = inc(tail)) begin
 					reset_out = reset_out | (1'b1<<RB_fu[i]);
 					RB_valid[i] = 1'b0;
 				end
 				mark = dec(mark);
-				tail = mark;	back = mark;
+				tail = mark;
+				back = mark;
 				#0.1 reset_out = 'b0;
 			end
 		end
 	end
 
 	always @(posedge clk) begin: writeBack	// issue the command at posedge, the the execution unit truly write data at negedge
+		// $display($realtime, " %b", RB_inst[inc(head)]);
+		if (RB_inst[inc(head)][31:28] === INST_HALT)begin
+		$display("stop");	
+		$finish;
+		end 
 		if (RB_valid[inc(head)] && RB_data_valid[inc(head)]) begin
 			head = inc(head);
+			$display("write back %0d %b", head, RB_inst[head]);
 			if (RB_inst[head][INST_START:INST_START-OPCODE_WIDTH+1] == INST_BGE) begin
 				we_mem       <= 1'b0;
 				we_reg       <= 1'b0;
@@ -214,6 +232,7 @@ module reorder_buffer(CDB_data_data, CDB_data_valid, CDB_data_addr, busy,
 					we_status_wb       = 1'b1;
 					RB_index_status_wb = READY;
 					Rdest_status_wb    = RB_Rdest[head];
+					// $display("%0d %b", head, RB_inst[4]);
 				end
 				else begin:writeToMem
 					we_reg    = 1'b0;
@@ -239,7 +258,7 @@ module reorder_buffer(CDB_data_data, CDB_data_valid, CDB_data_addr, busy,
 			we_reg <= 1'b0;
 			we_status_wb <= 1'b0;
 		end
-		//$display($realtime, "head = %d", head);
+		// $display($realtime, "head = %d rstwb= %d", head, Rdest_status_wb);
 	end
 
 	always @(posedge clk) begin: updateRegStatus
@@ -312,6 +331,9 @@ module reorder_buffer(CDB_data_data, CDB_data_valid, CDB_data_addr, busy,
 			INST_BGE : begin
 				fu_start = BRANCH_START;
 				fu_num 	 = BRANCH_NUM;
+			end
+			INST_HALT : begin
+				/*do nothing*/
 			end
 			default: begin
 				$display($realtime, "fatal: RB is issuing a jump");

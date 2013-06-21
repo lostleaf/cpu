@@ -61,3 +61,7 @@ namespace :test do
     end
 end
 
+desc "compile all"
+task :compile  do
+    puts `iverilog CPU.v -o test_CPU` 
+end

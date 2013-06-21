@@ -52,7 +52,7 @@ module ALU_RS(fu, RB_index, inst, vj, vk, qj, qk,
 			result <= 'b0;
 		end else if (!busy) begin: checkIssue
 				#0.1 if (fu == fuindex) begin
-						$display($realtime, ": %d receive inst:%b", fuindex, inst);
+						$display($realtime, " %m: %d receive inst:%b", fuindex, inst);
 						op = inst[WORD_SIZE-1:WORD_SIZE-OPCODE_WIDTH];
 						busy  <= 1'b1;
 						dest  <= RB_index;
