@@ -4,8 +4,8 @@ import java.util.LinkedHashSet;
 import java.util.LinkedList;
 
 import roxanne.addr.*;
+import roxanne.asm.Asm;
 import roxanne.ast.Expr.OpType;
-import roxanne.error.Error;
 import roxanne.error.Error;
 
 public class Biop extends Quad {
@@ -42,23 +42,17 @@ public class Biop extends Quad {
 	 * add dst, left, right
 	 * if both spilled: k0(k1,a1,a0) = k0(a1, a0)+k1(k0,a0)
 	 */
-	public LinkedList<String> gen() throws Error {
-		LinkedList<String> strings = new LinkedList<String>();
-	
-		if (!dst.spilled() && !left.spilled() && !right.spilled()) {
-			strings.add("\t"+getOp(op)+"\t"+dst.gen()+", "+left.gen()+", "+right.gen());
-			return strings;
-		}
+	public LinkedList<Asm> gen() throws Error {
+		LinkedList<Asm> asms = new LinkedList<Asm>();
 		
-		String l = null, r = null, d = genBeforeDef(dst, k0);
-		r = genBeforeUse(strings, right,k1, k0);
-		l = genBeforeUse(strings, left,k0, a1);
+		Temp r = genBeforeUse(asms, right);
+		Temp l = genBeforeUse(asms, left);
+		Temp d = genBeforeDef(dst);
 		
+		asms.add(new Asm(getOp(op), d, l, r));
 		
-		strings.add("\t"+getOp(op)+"\t"+d+", "+l+", "+r);
-		
-		genAfterDef(strings, dst, k0, k1, a1);
-		return strings;
+		genAfterDef(asms, dst, d);
+		return asms;
 	}	
 	
 	// DefReach

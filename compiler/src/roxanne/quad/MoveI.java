@@ -4,6 +4,8 @@ import java.util.LinkedHashSet;
 import java.util.LinkedList;
 
 import roxanne.addr.*;
+import roxanne.asm.Asm;
+import roxanne.asm.Asm.Op;
 import roxanne.error.Error;
 
 public class MoveI extends Quad {
@@ -30,16 +32,16 @@ public class MoveI extends Quad {
 		return set;
 	}
 	
-	static void genBeforeLoadConst(LinkedList<String> strings, Const num, int reg) {
+	/*static void genBeforeLoadConst(LinkedList<String> strings, Const num, int reg) {
 		if (outOfBound(num.value, ConstMode.LI))
 			genBeforeUseConst(strings, num, reg, ConstMode.LI);
 		else
 			strings.add("\tli\t"+regNames[reg]+", "+ num.gen());
-	}
+	}*/
 	/*
 	 * k1(addr) = k0
 	 */
-	static void genWhenSpillDst(LinkedList<String> strings, Addr dstAddr, Addr index, Const src) {
+	/*static void genWhenSpillDst(LinkedList<Asm> asms, Addr dstAddr, Addr index, Const src) {
 		genBeforeLoadConst(strings, src, k0);
 		if (dstAddr instanceof Temp) {
 			String dstAddrName = genBeforeUse(strings, (Temp)dstAddr, k1, a1);
@@ -53,7 +55,7 @@ public class MoveI extends Quad {
 			assert(index == null);
 			strings.add("\tsw\t"+regNames[k0]+", "+dstAddr.gen());
 		}
-	}
+	}*/
 	
 	@Override
 	/*
@@ -63,16 +65,16 @@ public class MoveI extends Quad {
 	 * 	sw	k0,	dst.index(dst.addr(k1))
 	 * 
 	 */
-	public LinkedList<String> gen() throws Error {
-		LinkedList<String> strings = new LinkedList<String>();
+	public LinkedList<Asm> gen() throws Error {
+		LinkedList<Asm> asms = new LinkedList<Asm>();
 
-		if (!dst.spilled())
-			strings.add("\tli\t"+dst.gen()+", "+src.gen());
-		else {	// dst.spilled, src must be loaded before sw
-			genWhenSpillDst(strings, dst.addr, dst.index, src);
-		}
+		if (!dst.mustBeSpilled())
+			asms.add(new Asm(Op.li, dst, src, null));
+		/*else {	// dst.spilled, src must be loaded before sw
+			genWhenSpillDst(asms, dst.addr, dst.index, src);
+		}*/
 		
-		return strings;
+		return asms;
 	}
 	
 }

@@ -4,7 +4,9 @@ import java.util.LinkedHashSet;
 import java.util.LinkedList;
 
 import roxanne.addr.*;
+import roxanne.asm.Asm;
 import roxanne.error.Error;
+import roxanne.symbol.Symbol;
 import roxanne.translate.Level;
 
 public class Ret extends Quad {
@@ -32,14 +34,16 @@ public class Ret extends Quad {
 	}
 
 	@Override
-	public LinkedList<String> gen() throws Error {
-		LinkedList<String> strings = new LinkedList<String>();
-		if (value == null)	return strings;
-
-		if (value instanceof Const) {
+	public LinkedList<Asm> gen() throws Error {
+		LinkedList<Asm> asms = new LinkedList<Asm>();
+		if (value == null|| label.name == Symbol.symbol("main")) return asms;
+		
+		throw new Error("label is not main");
+		/*if (value instanceof Const) {
 			if (outOfBound(((Const)value).value, ConstMode.LI))
-				genBeforeUseConst(strings, (Const)value, v0, ConstMode.LI);
+				genBeforeUseConst(asms, (Const)value, level, ConstMode.LI);
 			else
+				asm.add(new Asm(Op.li, Temp.v0, value));
 				strings.add("\tli\t$v0, "+value.gen());
 			
 			return strings;
@@ -54,7 +58,7 @@ public class Ret extends Quad {
 		Leave leave = new Leave(level, label);
 		strings.addAll(leave.gen());
 
-		return strings;
+		return strings;*/
 	}
 
 	//for DefReach

@@ -4,8 +4,11 @@ import java.util.LinkedHashSet;
 import java.util.LinkedList;
 
 import roxanne.addr.*;
+import roxanne.asm.Asm;
+import roxanne.asm.Asm.Op;
 import roxanne.ast.Expr.OpType;
 import roxanne.error.Error;
+import roxanne.quad.Quad.ConstMode;
 
 public class BioprI extends Quad {
 	public Temp dst, left;
@@ -40,15 +43,17 @@ public class BioprI extends Quad {
 	/*
 	 * if both spilled k0 = k0+imm(k1);  k1 used for k0's addr if need
 	 */
-	public LinkedList<String> gen() throws Error {
-		LinkedList<String> strings = new LinkedList<String>();
+	public LinkedList<Asm> gen() throws Error {
+		LinkedList<Asm> asms = new LinkedList<Asm>();
 		
-		String l = genBeforeUse(strings, left, k0,a1);
-		String d = genBeforeDef(dst, k0);
-		String r = genBeforeUseConst(strings, right, k1, ConstMode.ALU);
-		strings.add("\t"+getOpI(op)+"\t"+d+", "+l+", "+r);
-		genAfterDef(strings, dst, k0, k1, a1);
-		return strings;
-	}
+		Temp l = genBeforeUse(asms, left);
+		Addr r = genBeforeUseConst(asms, right, dst.level, ConstMode.ALU);
+		Temp d = genBeforeDef(dst);
+		
+		asms.add(new Asm(getOpI(op), d, l, r));
+		
+		genAfterDef(asms, dst, d);
+		return asms;
+	}	
 	
 }

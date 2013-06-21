@@ -2,7 +2,9 @@ package roxanne.quad;
 
 import java.util.LinkedList;
 
-import roxanne.addr.*;;
+import roxanne.addr.*;
+import roxanne.asm.Asm;
+import roxanne.asm.Asm.Op;
 
 
 public class LABEL extends Quad {
@@ -20,10 +22,10 @@ public class LABEL extends Quad {
 		return label.toString()+super.toString();
 	}
 
-	public LinkedList<String> gen() {
-		LinkedList<String> strings = new LinkedList<String>();
-		strings.add(label+":");
-		return strings;
+	public LinkedList<Asm> gen() {
+		LinkedList<Asm> asms = new LinkedList<Asm>();
+		asms.add(new Asm(Op.label, label, null,null));
+		return asms;
 	}
 
 	//for DefReach

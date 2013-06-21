@@ -6,6 +6,8 @@ import java.util.LinkedList;
 import roxanne.addr.Addr;
 import roxanne.addr.Const;
 import roxanne.addr.Temp;
+import roxanne.asm.Asm;
+import roxanne.asm.Asm.Op;
 import roxanne.error.Error;
 
 public class Move extends Quad {
@@ -35,7 +37,7 @@ public class Move extends Quad {
 	/*
 	 * a1(k1) = src
 	 */
-	static void genWhenSpillDst(LinkedList<String> strings, Addr dstAddr, Addr index, String src) {
+	/*static void genWhenSpillDst(LinkedList<String> strings, Addr dstAddr, Addr index, String src) {
 		if (dstAddr instanceof Temp) {
 			String addrName = genBeforeUse(strings, (Temp)dstAddr, k1, a1);
 			if (index instanceof Const) {
@@ -48,12 +50,12 @@ public class Move extends Quad {
 			assert(index == null);
 			strings.add("\tsw\t"+src+", "+dstAddr.gen());
 		}
-	}
+	}*/
 	
 	// call when dst is spilled
 	// k0 = a1(k0)
 	// (k1) or a1(k1) = k0
-	static void genWhenSpillDst(LinkedList<String> strings, Addr dstAddr, Addr index, Temp src) {
+	/*static void genWhenSpillDst(LinkedList<String> strings, Addr dstAddr, Addr index, Temp src) {
 		if (!src.spilled()) {
 			genWhenSpillDst(strings, dstAddr, index, src.gen());
 		} else {
@@ -72,7 +74,7 @@ public class Move extends Quad {
 				strings.add("\tsw\t"+srcName+", "+dstAddr.gen());
 			}
 		}
-	}
+	}*/
 	@Override
 	/*
 	 * if (both not spilled)
@@ -90,18 +92,18 @@ public class Move extends Quad {
 	 * 		}
 	 * }
 	 */
-	public LinkedList<String> gen() throws Error {
-		LinkedList<String> strings = new LinkedList<String>();
+	public LinkedList<Asm> gen() throws Error {
+		LinkedList<Asm> asms = new LinkedList<Asm>();
 
-		if (!dst.spilled() && !src.spilled())
-			strings.add("\tmove\t"+dst.gen()+", "+src.gen());
-		else if (!dst.spilled() && src.spilled()) 
-			Temp.genLoadIfNeed(strings, src, dst.getRegister(), k0/*no use since not spilled*/);
+		if (!dst.mustBeSpilled() && !src.mustBeSpilled())
+			asms.add(new Asm(Op.move, dst, src, null));
+		/*else if (!dst.spilled() && src.spilled()) 
+			Temp.genLoadIfNeed(asms, src, dst.getRegister(), k0);
 		else {
-			genWhenSpillDst(strings, dst.addr, dst.index, src);
+			genWhenSpillDst(asms, dst.addr, dst.index, src);
 		}
-		
-		return strings;
+		*/
+		return asms;
 	}
 	
 	

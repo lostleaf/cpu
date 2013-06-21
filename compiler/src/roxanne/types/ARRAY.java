@@ -1,6 +1,7 @@
 package roxanne.types;
 
 import roxanne.addr.Addr;
+
 import roxanne.addr.Temp;
 import roxanne.quad.*;
 import roxanne.addr.Const;
@@ -11,11 +12,11 @@ import roxanne.error.Error;
 import roxanne.translate.*;
 import java.util.*;
 
-public final class ARRAY extends POINTER {
+public final class ARRAY extends POINTER{
 	public Expr capacity;
 	public Addr size = null;
-	public ARRAY() { super(); capacity = null; width = new Const(4);}
-	public ARRAY(TYPE t, Expr i) { super(t); capacity = i; width = new Const(4);}
+	public ARRAY() { super(); capacity = null; width = new Const(wordSize);}
+	public ARRAY(TYPE t, Expr i) { super(t); capacity = i; width = new Const(wordSize);}
 	public ARRAY(TYPE t, Integer i) {
 		super(t);
 		capacity = new Num(i);

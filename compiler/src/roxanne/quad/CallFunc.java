@@ -1,6 +1,7 @@
 package roxanne.quad;
 
 import roxanne.addr.*;
+import roxanne.asm.Asm;
 import roxanne.symbol.Symbol;
 import roxanne.translate.Level;
 
@@ -65,11 +66,11 @@ public class CallFunc extends CallProc {
 		return strings;	
 	}
 	
-	public LinkedList<String> gen() {
+	public LinkedList<Asm> gen() {
 		if (label.label.name == Symbol.symbol("malloc"))
 			return genMalloc();
 		
-		LinkedList<String> strings = super.gen();
+		LinkedList<Asm> strings = super.gen();
 		if (ret.mustBeSpilled() || ret.getInterval() != null)
 			if (!ret.spilled()) {
 				strings.add("\tmove\t"+ret.gen()+", $v0");

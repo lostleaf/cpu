@@ -4,6 +4,8 @@ import java.util.LinkedHashSet;
 import java.util.LinkedList;
 
 import roxanne.addr.*;
+import roxanne.asm.Asm;
+import roxanne.asm.Asm.Op;
 import roxanne.ast.Expr.OpType;
 import roxanne.error.Error;
 
@@ -41,21 +43,22 @@ public class BioplI extends Quad {
 	 * lw k0, left
 	 * k0 = k0 op k1;  k1 used for k0's addr if need
 	 */
-	public LinkedList<String> gen() throws Error {
-		LinkedList<String> strings = new LinkedList<String>();
+	public LinkedList<Asm> gen() throws Error {
+		LinkedList<Asm> asms = new LinkedList<Asm>();
 		
-		String d = genBeforeDef(dst, k0);
-		String r = genBeforeUse(strings, right, k1, k0);
-		
+		Temp r = genBeforeUse(asms, right);
+		Temp l = null;
 		if (outOfBound(left.value, ConstMode.LI))
-			genBeforeUseConst(strings, left, k0, ConstMode.LI);
-		else strings.add("\tli\t$k0, "+left.gen());
+			l = (Temp)genBeforeUseConst(asms, left, dst.level, ConstMode.ALU);
+		else  {
+			l = dst.level.newTemp();
+			asms.add(new Asm(Op.li, l, left, null));
+		}
+		Temp d = genBeforeDef(dst);
 		
-		String l = regNames[k0];
+		asms.add(new Asm(getOp(op), d, l, r));
 		
-		strings.add("\t"+getOp(op)+"\t"+d+", "+l+", "+r);
-		genAfterDef(strings, dst, k0, k1, a1);
-		return strings;
-	}
-
+		genAfterDef(asms, dst, d);
+		return asms;
+	}	
 }

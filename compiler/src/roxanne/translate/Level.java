@@ -27,9 +27,14 @@ public class Level implements Constants{
 		parent = l;
 		/*if (parent == null)
 			offset = new Const(numOfSavedRegisters*wordSize);*/
-		if (parent != null)
-			offset = new Const(saveSize);
+		/*if (parent != null)
+			offset = new Const(saveSize);*/
 	}
+	
+	public Temp newTemp() {
+		return new Temp(new Const(wordSize), this);
+	}
+	
 	public Temp newTemp(Addr width) {
 		return new Temp(width, this);
 	}

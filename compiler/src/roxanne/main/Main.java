@@ -13,6 +13,8 @@ import roxanne.translate.Level;
 import roxanne.translate.Translator;
 import roxanne.analysis.LivenessAnalysis;
 import roxanne.analysis.Optimizer;
+import roxanne.analysis.Scheduler;
+import roxanne.asm.Asm;
 import roxanne.ast.*;
 import roxanne.codegen.*;
 import roxanne.error.Error;
@@ -50,26 +52,27 @@ public class Main {
 			Translator translator = new Translator(new Level());
 			translator.translate(program);
 		//======================================MidCode==============================================
-		//======================================Optimize==============================================
+		//====================================CodeSchedule============================================
 			LinkedList<CompilationUnit> units = translator.getUnits();
-			/*for (CompilationUnit unit: units) {
-				Optimizer.optimize(unit);
-			}*/
-		//======================================Optimize==============================================
-		//======================================CodeGen==============================================
-			Codegen codegen = new Codegen();
+			LinkedList<Asm> asms = Asm.gen(units);
+			Scheduler scheduler = new Scheduler(asms);
+			asms = new LinkedList<Asm>(scheduler.reSchedule());
+		//====================================CodeSchedule============================================
+		//======================================RegAlloc==============================================
+			
 			RegAlloc regalloc = new LinearScan();
-			regalloc.bindRegister(units);
-			codegen.gen(units);
+			regalloc.bindRegister(asms);
+		//======================================RegAlloc==============================================
+		//=======================================CodeGen==============================================
+			Codegen codegen = new Codegen();
+			codegen.gen(asms);
 
 			codegen.gen("\n\t.data 0x10000000");
 			for(DataFrag datafrag: translator.datafrags) {
 				codegen.genAll(datafrag.gen());
 			}
-			
-		//======================================CodeGen==============================================
-			
 			codegen.flush();
+		//=======================================CodeGen==============================================	
 		} catch(Error e) {
 			e.printStackTrace();
 			System.exit(1);

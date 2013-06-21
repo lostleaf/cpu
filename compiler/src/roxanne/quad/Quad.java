@@ -2,13 +2,17 @@ package roxanne.quad;
 
 import roxanne.addr.Temp;
 
+
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.Set;
 
+import roxanne.asm.*;
+import roxanne.asm.Asm.Op;
 import roxanne.addr.*;
 import roxanne.ast.Expr.OpType;
 import roxanne.error.Error;
+import roxanne.translate.Level;
 import roxanne.util.Constants;
 
 public abstract class Quad implements Constants {
@@ -56,23 +60,12 @@ public abstract class Quad implements Constants {
 		else return new Store((Temp)dst, index, (Temp)src);
 	}
 	
-	public static Quad makeLoad(Temp dst, Addr src, Const index) throws Error {
-		// if src == const , new loadD, but by far, this is not my design
-		if (index == null) index = new Const(0);
-		if (src instanceof Const) {
-			Const offset = null;
-			if (index != null) offset = (Const)Addr.biop((Const)src, OpType.PLUS, index, null);
-			else offset = (Const)src;
-			return new LoadD(dst, offset);
-		} else return new Load(dst, (Temp)src, index);
-	}
-	
 	public static Quad makeUop(Temp dst, OpType op, Addr src) {
 		return new Uop(dst, op, (Temp)src);
 	}
 	
 	// temporary??
-	public abstract LinkedList<String> gen() throws Error;
+	public abstract LinkedList<Asm> gen() throws Error;
 	
 	public boolean isJump() { return false; }
 	
@@ -170,85 +163,68 @@ public abstract class Quad implements Constants {
 		return true;
 	}
 	
-	public static String genBeforeUse(LinkedList<String> strings, Temp t, int regToReplace, int indexReg) {
-		if (!t.spilled()) 
-			return t.gen();
+	public static Temp genBeforeUse(LinkedList<Asm> strings, Temp t) {
+		if (!t.mustBeSpilled()) 
+			return t;
 		
-		strings.addAll(t.genBeforeUse(regToReplace, indexReg));
-		return regNames[regToReplace];
+		return t.genBeforeUse(strings);
 	}
-	public static String genBeforeDef(Temp t, int regToReplace) {
-		if (!t.spilled())
-			return t.gen();
+	public static Temp genBeforeDef(Temp t) {
+		if (!t.mustBeSpilled())
+			return t;
 		
-		return regNames[regToReplace];
+		return t.level.newTemp(t.width);
 	}
 	
-	protected static String genBeforeUseConst(LinkedList<String> strings, Const num, int reg, ConstMode m) {
+	public static Addr genBeforeUseConst(LinkedList<Asm> strings, Const num, Level lvl, ConstMode m) {
 		int a[] = getMinMax(m);
 		int min = a[0], max = a[1];
 		
 		if (min <= num.value && num.value <= max)
-			return num.gen();
+			return num;
 		int rest = 0;
+		
+		Temp ans = lvl.newTemp();
 		if (num.value < min) {
 			rest = num.value - min;
-			strings.add("\tli\t"+regNames[reg]+", "+min);
+			strings.add(new Asm(Op.li, ans, new Const(min), null));
 		} else {
-			strings.add("\tli\t"+regNames[reg]+", "+max);
+			strings.add(new Asm(Op.li, ans, new Const(max), null));
 			rest = num.value - max;
 		}
-		strings.add("\taddi\t"+regNames[reg]+", "+regNames[reg]+", "+rest);
-		return regNames[reg];
+		strings.add(new Asm(Op.addi, ans, ans, new Const(rest)));
+		return ans;
 	}
 	
 	
-	protected static void genAfterDef(LinkedList<String> strings, Temp t, int regForTemp, int regForAddr, int regForIndex) {
-		if (!t.spilled())
+	protected static void genAfterDef(LinkedList<Asm> strings, Temp t, Temp storeDst) {
+		if (!t.mustBeSpilled())
 			return;
-		strings.addAll(t.genAfterDef(regForTemp, regForAddr, regForIndex));
+		strings.addAll(t.genAfterDef(storeDst));
 	}
 	
-	protected static String getOp(OpType op) throws Error {
+	protected static Asm.Op getOp(OpType op) throws Error {
 		switch(op) {
-		case PLUS: return "add";
-		case MINUS: return "sub";
-		case TIMES: return "mul";
-		case DIVIDE: return "div";
-		case MOD: return "rem";
-		case EQ: return "seq";
-		case NE: return "sne";
-		case LT: return "slt";
-		case GT: return "sgt";
-		case LE: return "sle";
-		case GE: return "sge";
-		case BITOR: return "sor";
-		case BITAND: return "and";
-		case BITNOT: return "not";
-		case SHR:	return "sra"; 
-		case SHL:	return "sll";
-		case UMINUS: return "neg";
+		case PLUS: return Op.add;
+		case MINUS: return Op.sub;
+		case TIMES: return Op.mul;
 		default: throw new Error("get illegal op: "+op);
 		}
 	}
 	
-	public static String getOpI(OpType op) throws Error{
+	public static Op getOpI(OpType op) throws Error{
 		switch(op) {
-		case PLUS:	case MINUS: case TIMES: case BITAND: case BITOR: case BITXOR:	case LT:
-			return getOp(op)+"i";
+		case PLUS:	return Op.addi;	
+		case MINUS:	return Op.subi;
+		case TIMES: return Op.muli;
 		default: 
-			return getOp(op);
+			throw new Error("get illegal op: "+op);
 		}
 	}
 	
-	protected static String getBranchOp(OpType op) throws Error{
+	protected static Op getBranchOp(OpType op) throws Error{
 		switch(op) {
-		case EQ: return "eq";
-		case NE: return "ne";
-		case LT: return "lt";
-		case GT: return "gt";
-		case LE: return "le";
-		case GE: return "ge";
+		case GE: return Op.bge;
 		default: throw new Error("get illegal branch op: "+op);
 		}
 	}
@@ -272,13 +248,13 @@ public abstract class Quad implements Constants {
 	public static String genAddress(String addr, String index) {
 		return addr+", "+index;
 	}
-	public static String genAddress(LinkedList<String> strings, Const index, String addrName, int reg) {
+	/*public static String genAddress(LinkedList<String> strings, Const index, String addrName, int reg) {
 		if (index == null)
 			return addrName+", "+0;
 		
 		String constName = genBeforeUseConst(strings, new Const(-index.value), reg, ConstMode.PCOFFSET);
 		return addrName+", "+constName;
-	}
+	}*/
 	
 	public String toString() {
 		//StringBuffer str = new StringBuffer("\n");

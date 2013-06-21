@@ -5,6 +5,7 @@ import java.util.LinkedHashSet;
 import java.util.LinkedList;
 
 import roxanne.addr.*;
+import roxanne.asm.Asm;
 import roxanne.symbol.Symbol;
 import roxanne.translate.Level;
 import roxanne.translate.Translator;
@@ -69,13 +70,13 @@ public class CallProc extends Quad {
 		
 		}
 	 */
-	public LinkedList<String> gen() {
+	public LinkedList<Asm> gen() {
 		if (label.label.name == Symbol.symbol("print_int"))
 			return genPrint_int();
 		if (label.label.name == Symbol.symbol("print_str"))
 			return genPrint_str();
 		
-		LinkedList<String> strings = new LinkedList<String> ();
+		LinkedList<Asm> strings = new LinkedList<Asm> ();
 		// put paras
 		int offset = level.offset.value;
 		Temp addr  = Translator.fpgp(level.parent == null);
