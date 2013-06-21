@@ -111,7 +111,7 @@ module data_cache(ptr_read1,    ptr_read2,    ptr_read3,
                 read_data(dirty[index_r3], valid[index_r3], tag[index_r3], 
                         data_tag_r3, cache[index_r3], offset_r3, hit_read3, out3,
                         out_mem_block3);
-            $display("h : %b %d" , hit_read1, out_mem_block1);
+            // $display("h : %b %d" , hit_read1, out_mem_block1);
         end
     end
 

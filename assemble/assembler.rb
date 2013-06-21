@@ -1,10 +1,12 @@
 #! /usr/bin/env ruby
 #coding: utf-8
+require "pry"
 class Assembler
     def initialize(input, output)
         @INST   = %w[add sub mul lwrr swrr addi subi muli lw sw li j jr bge]
         @REG    = %w[zero at v0 v1 a0 a1 a2 a3 t0 t1 t2 t3 t4 t5 t6 t7 s0 s1
                      s2 s3 s4 s5 s6 s7 t8 t9 k0 k1 gp sp fp ra]
+        # binding.pry
         @input, @output = input.read, output
     end
 

@@ -35,6 +35,7 @@ parameter INST_LI            = 4'ha;
 parameter INST_J             = 4'hb;
 parameter INST_JR            = 4'hc;
 parameter INST_BGE           = 4'hd;
+parameter INST_HALT          = 4'he;
 //parameter INST_NOP		= 4'hf;
 
 // for FU

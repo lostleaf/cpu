@@ -9,6 +9,7 @@
 `include "load_RS.v"
 `include "data_cache.v"
 `include "data_memory.v"
+`include "branch_RS.v"
 module CPU;
     `include "parameters.v"
 
@@ -131,7 +132,15 @@ module CPU;
         .reset_bus(reset_bus), .clk(clk),
         .c_ptr(cache_ptr_read3), .c_out(cache_out3), .c_hit(cache_hit_read3),
         .c_read_enable(cache_read_enable3)
-        );    
+        );
+
+    branch_RS branch_rs(.fu(CDB_inst_fu), .RB_index(CDB_inst_RBindex), .inst(CDB_inst_inst),
+        .vj(vj), .vk(vk), .qj(qj), .qk(qk),                  
+        .reg_numj(numj), .reg_numk(numk), .busy_out(busy), 
+        .CDB_data_data(CDB_data_data), .CDB_data_valid(CDB_data_valid),
+        .data_bus(FU_data_bus), .valid_bus(FU_valid_bus), .RB_index_bus(FU_RB_index_bus), 
+        .reset_bus(reset_bus), .clk(clk)
+        );
 
     CDB_data_controller data_ctrl(.CDB_data_data(CDB_data_data), 
         .CDB_data_valid(CDB_data_valid), .CDB_data_addr(CDB_data_addr),
@@ -218,7 +227,7 @@ module CPU;
         end
         */
 
-        #120 $finish;
+        #1200 $finish;
     end
 
     task setWriteBy;

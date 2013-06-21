@@ -55,7 +55,7 @@ module data_memory (ptr_in, in_block,
     end
 
     always @(posedge clk) begin
-        $display("%d %d %d", ptr_out1, ptr_out2, ptr_out3);
+        // $display("%d %d %d", ptr_out1, ptr_out2, ptr_out3);
         if (write_enable) begin
             {memory[ptr_block_in+0],memory[ptr_block_in+1],memory[ptr_block_in+2],
             memory[ptr_block_in+3],memory[ptr_block_in+4],memory[ptr_block_in+5],
