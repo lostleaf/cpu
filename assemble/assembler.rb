@@ -3,7 +3,7 @@
 require "pry"
 class Assembler
     def initialize(input, output)
-        @INST   = %w[add sub mul lwrr swrr addi subi muli lw sw li j jr bge]
+        @INST   = %w[add sub mul lwrr swrr addi subi muli lw sw li j jr bge halt]
         @REG    = %w[zero at v0 v1 a0 a1 a2 a3 t0 t1 t2 t3 t4 t5 t6 t7 s0 s1
                      s2 s3 s4 s5 s6 s7 t8 t9 k0 k1 gp sp fp ra]
         # binding.pry
@@ -30,7 +30,7 @@ class Assembler
 
             #split oprands with instruction
             inst_str, op_str = line.split(/\s+/,2)
-            ops = op_str.gsub(/\s+/,'').split(',')
+            ops = op_str.gsub(/\s+/,'').split(',') if op_str
 
             @insts << [@INST.find_index(inst_str), ops, line]
         end
@@ -38,7 +38,7 @@ class Assembler
 
     def step2
         @insts.each do |inst_code, ops, inst_ori|
-            opsc = ops.collect { |op| convert_reg_name op}
+            opsc = ops.collect { |op| convert_reg_name op} if ops
             case inst_code
             when 0..4       #add..swrr
                 @output.puts "%04b_%05b_%05b_%05b_#{'0'*13}" % [inst_code, *opsc]
@@ -52,7 +52,10 @@ class Assembler
             when 12         #jr
                 @output.puts "%04b_%05b_#{'0'*23}" % [inst_code, opsc[0]]
             when 13         #bge
-                @output.puts "%04b_%05b_%010b_%013b" % [inst_code, *opsc[0..1], @label_map[opsc[2]]]
+                @output.puts "%04b_%05b_%010b_%013b" % 
+                [inst_code, *opsc[0..1], @label_map[opsc[2]]]
+            when 14         #halt
+                @output.puts "%04b_%028b" % [inst_code, 0]
             end
             # @output.puts "\# #{inst_ori}"
         end

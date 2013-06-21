@@ -41,11 +41,11 @@ module reg_status(get_num1, get_num2, get_num3, value1, value2, value3, status1,
 		else begin
 			if(write_rs_enable1) begin
 					statuses[write_rs_src1] <= write_rs_status1;
-					$display($realtime, ": reg_status[%d] = %d", write_rs_src1, write_rs_status1);
+					$display($realtime, ": 1reg_status[%d] = %d", write_rs_src1, write_rs_status1);
 			end
 			if(write_rs_enable2) begin
 					statuses[write_rs_src2] <= write_rs_status2;
-					$display($realtime, ": reg_status[%d] = %d", write_rs_src2, write_rs_status2);
+					$display($realtime, ": 2reg_status[%d] = %d", write_rs_src2, write_rs_status2);
 			end
 		end
 	end

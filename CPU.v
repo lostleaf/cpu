@@ -88,7 +88,7 @@ module CPU;
         .write_rs_enable2(we_status2),
         .reset(reset), .clk(clk));
     
-    ALU_RS alu_rs[FU_NUM-STORER_NUM/*-LOADER_NUM*/-1:0](.fu(CDB_inst_fu), 
+    ALU_RS alu_rs[ADDER_NUM+MULTER_NUM-1:0](.fu(CDB_inst_fu), 
         .RB_index(CDB_inst_RBindex), .inst(CDB_inst_inst), .vj(vj), .vk(vk), 
         .qj(qj), .qk(qk), .reg_numj(numj), .reg_numk(numk), .busy_out(busy), 
         .CDB_data_data(CDB_data_data), .CDB_data_valid(CDB_data_valid), 
@@ -172,8 +172,8 @@ module CPU;
     always begin:test
 
         reg[WORD_SIZE-1:0] i;
-        $dumpfile("CPU2.vcd");
-        $dumpvars;
+        // $dumpfile("CPU2.vcd");
+        // $dumpvars;
         // $display("fu num : ", FU_NUM);
 
         /*$monitor("%g: CDB: 1:<v:%b, d:%g, a:%g>, 2:<v:%b, d:%g, a:%g>, busy: 0:%g, 1:%g",
@@ -182,14 +182,14 @@ module CPU;
             CDB_data_valid[2], CDB_data_data[3*WORD_SIZE-1:2*WORD_SIZE], CDB_data_addr[3*WORD_SIZE-1:2*WORD_SIZE],
             busy[0], busy[1]);*/
         //$monitor($realtime, ": V:%b\nd:%h\naddr:%h\nbusy:%b",CDB_data_valid[4:0], CDB_data_data[4*WORD_SIZE-1:0], CDB_data_addr[4*WORD_SIZE-1:0], busy);
-        $monitor($realtime,": V:%b\nD:1:%g, 2:%g, 3:%g\naddr:1:%g, 2:%g, 3:%g", 
-                    CDB_data_valid,
-                    CDB_data_data[2*WORD_SIZE-1:WORD_SIZE], 
-                    CDB_data_data[3*WORD_SIZE-1:2*WORD_SIZE], 
-                    CDB_data_data[4*WORD_SIZE-1:3*WORD_SIZE],
-                    CDB_data_addr[2*WORD_SIZE-1:WORD_SIZE], 
-                    CDB_data_addr[3*WORD_SIZE-1:2*WORD_SIZE], 
-                    CDB_data_addr[4*WORD_SIZE-1:3*WORD_SIZE]);
+        // $monitor($realtime,": V:%b\nD:1:%g, 2:%g, 3:%g\naddr:1:%g, 2:%g, 3:%g", 
+        //             CDB_data_valid,
+        //             CDB_data_data[2*WORD_SIZE-1:WORD_SIZE], 
+        //             CDB_data_data[3*WORD_SIZE-1:2*WORD_SIZE], 
+        //             CDB_data_data[4*WORD_SIZE-1:3*WORD_SIZE],
+        //             CDB_data_addr[2*WORD_SIZE-1:WORD_SIZE], 
+        //             CDB_data_addr[3*WORD_SIZE-1:2*WORD_SIZE], 
+        //             CDB_data_addr[4*WORD_SIZE-1:3*WORD_SIZE]);
         
         /*$monitor($realtime, "inst:%b, fu:%d, RB_index = %d", 
             CDB_inst_inst, CDB_inst_fu, CDB_inst_RBindex);*/

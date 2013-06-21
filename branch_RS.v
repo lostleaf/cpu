@@ -37,14 +37,12 @@ module branch_RS (fu, RB_index, inst, vj, vk,  qj, qk,
     reg valid;
     wire reset;
 
-    assign busy_out[fuindex:fuindex] = busy;
-    // assign addr_bus[(StorerIndex+1)*WORD_SIZE-1: StorerIndex*WORD_SIZE] = result;
-    assign valid_bus[fuindex: fuindex] = valid;
-    assign data_bus[(fuindex+1)*WORD_SIZE-1:fuindex*WORD_SIZE] = data;
+    assign busy_out[fuindex:fuindex]                             = busy;
+    assign data_bus[(fuindex+1)*WORD_SIZE-1: fuindex*WORD_SIZE]  = result;
+    assign valid_bus[fuindex: fuindex]                           = valid;
     assign RB_index_bus[(fuindex+1)*RB_INDEX-1:fuindex*RB_INDEX] = dest;
-    assign reset = reset_bus[fuindex];
+    assign reset                                                 = reset_bus[fuindex];
 
-        
     always @(posedge clk or posedge reset) begin
         if (reset) begin
             busy <= 1'b0;
@@ -56,16 +54,18 @@ module branch_RS (fu, RB_index, inst, vj, vk,  qj, qk,
             #0.1 ;
             // $display("fu: ", fu);
             if (fu == fuindex) begin
-                $display($realtime, "%m : %d receive inst:%b", fuindex, inst);
+                $display($realtime, "%m : %d receive inst:%b %d", fuindex, inst, RB_index);
                 busy  <= 1'b1;
                 dest  <= RB_index;
                 op = inst[WORD_SIZE-1:WORD_SIZE-OPCODE_WIDTH];
 
                 //op must be INST_BGE
                 reg_numj = inst[RD_START: RD_START-REG_INDEX+1];
+                // $display($realtime, "branch reg numj %0d", reg_numj);
                 getData(vj, qj, Vj, Qj, CDB_data_data, CDB_data_valid);
                 // $display("%d %d dsfsdfsdf", Vj, Qj);
-                Vk = inst[IMM_START:0];
+                Vk = inst[BGE_IMM_START:BGE_PCOFFSET_START+1];
+
                 Qk = READY;
                 
                 #0.1;
@@ -82,7 +82,6 @@ module branch_RS (fu, RB_index, inst, vj, vk,  qj, qk,
                     result = Vj >= Vk;
                     valid = 1'b1;
                     busy = 1'b0;
-                    // $display($realtime, " loader fu: %d freed op = %h", fuindex, op);
                     #1.3 valid = 0'b0;
                     dest = NULL;
                 end
@@ -132,13 +131,13 @@ module branch_RS (fu, RB_index, inst, vj, vk,  qj, qk,
         inout ok;
         reg valid;
         begin
-            //$display("<Q:%g, V:%g>", Q, V);
             if (Q === READY) begin end
             else begin 
                 valid = readValidBus(validBus, Q);
                 if (valid) begin
-                    Q = READY;
                     V = readDataBus(dataBus, Q);
+                    Q = READY;
+                // $display("<Q:%g, V:%g>", Q, V);
                 end else ok = 1'b0;
             end
         end

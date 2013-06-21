@@ -156,8 +156,8 @@ module store_RS(fu, RB_index, inst,vi, vj, vk, qi, qj, qk,
 			else begin 
 				valid = readValidBus(validBus, Q);
 				if (valid) begin
-					Q = READY;
 					V = readDataBus(dataBus, Q);
+					Q = READY;
 				end else ok = 1'b0;
 			end
 		end

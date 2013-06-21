@@ -116,6 +116,10 @@ module reorder_buffer(CDB_data_data, CDB_data_valid, CDB_data_addr, busy,
 			free = 1'b0;
 			/*if (op == INST_BGE) 
 				$display("start = %d, end = %d", i, fuend);)*/
+			if (op === INST_HALT) begin
+				free = 1'b1;
+				tail = inc(tail);
+			end
 			for (i = i; i <= fuend && !free; i = i+1) begin
 				if (!busy[i]) begin
 					tail                = inc(tail);
@@ -146,7 +150,9 @@ module reorder_buffer(CDB_data_data, CDB_data_valid, CDB_data_addr, busy,
 				CDB_inst_fu = NO_FU;
 			end
 			else begin
-				if (op != INST_SW && op != INST_SWRR && op != INST_BGE) begin	//j or jr will not in RB, branch will set free = 0;
+				if (op != INST_SW && op != INST_SWRR && op != INST_BGE && op != INST_HALT) begin
+					//j or jr will not in RB, branch will set free = 0;
+					$display("%b %b", RB_inst[tail], op);
 					Rdest_status_issue    = getRdest(RB_inst[tail]);
 					we_status_issue       = 1'b1;
 					RB_index_status_issue = tail;
@@ -169,6 +175,7 @@ module reorder_buffer(CDB_data_data, CDB_data_valid, CDB_data_addr, busy,
 
 		hasBranch  = 1'b0;
 		#0.1 for (i = head; i != inc(tail); i = (i + 1) % RB_SIZE ) begin
+			// $display("%d %b", readValidBus(CDB_data_valid, i), RB_inst[i]);
 			if (readValidBus(CDB_data_valid, i)) begin
 				op               = RB_inst[i][INST_START:INST_START-OPCODE_WIDTH+1];
 				RB_data[i]       = readDataBus(CDB_data_data, i);
@@ -177,6 +184,7 @@ module reorder_buffer(CDB_data_data, CDB_data_valid, CDB_data_addr, busy,
 				if (RB_to_mem[i] || op == INST_BGE) 
 					RB_addr[i] = readDataBus(CDB_data_addr, i);
 				if (op == INST_BGE) begin
+					// $display("find branch");
 					hasBranch = 1'b1;
 					mark      = i;
 					target    = RB_inst[i][12:0];
@@ -185,13 +193,14 @@ module reorder_buffer(CDB_data_data, CDB_data_valid, CDB_data_addr, busy,
 		end
 
 		if (hasBranch) begin: updatePCAndResetIfNeed
+			// $display("branch taken? %b", RB_data[mark]);
 			if (RB_data[mark]) begin
 				pc = target;
 				for (i = mark; i != inc(tail); i = inc(tail)) begin
 					reset_out = reset_out | (1'b1<<RB_fu[i]);
 					RB_valid[i] = 1'b0;
 				end
-				mark = mark - 1;
+				mark = dec(mark);
 				tail = mark;
 				back = mark;
 				#0.1 reset_out = 'b0;
@@ -200,10 +209,14 @@ module reorder_buffer(CDB_data_data, CDB_data_valid, CDB_data_addr, busy,
 	end
 
 	always @(posedge clk) begin: writeBack	// issue the command at posedge, the the execution unit truly write data at negedge
-		// $display($realtime, " valid : %b %b", RB_valid[inc(head)], RB_data_valid[inc(head)]);
+		// $display($realtime, " %b", RB_inst[inc(head)]);
+		if (RB_inst[inc(head)][31:28] === INST_HALT)begin
+		$display("stop");	
+		$finish;
+		end 
 		if (RB_valid[inc(head)] && RB_data_valid[inc(head)]) begin
 			head = inc(head);
-			// $display("write back %0d", head);
+			$display("write back %0d %b", head, RB_inst[head]);
 			if (RB_inst[head][INST_START:INST_START-OPCODE_WIDTH+1] == INST_BGE) begin
 				we_mem       <= 1'b0;
 				we_reg       <= 1'b0;
@@ -219,6 +232,7 @@ module reorder_buffer(CDB_data_data, CDB_data_valid, CDB_data_addr, busy,
 					we_status_wb       = 1'b1;
 					RB_index_status_wb = READY;
 					Rdest_status_wb    = RB_Rdest[head];
+					// $display("%0d %b", head, RB_inst[4]);
 				end
 				else begin:writeToMem
 					we_reg    = 1'b0;
@@ -244,7 +258,7 @@ module reorder_buffer(CDB_data_data, CDB_data_valid, CDB_data_addr, busy,
 			we_reg <= 1'b0;
 			we_status_wb <= 1'b0;
 		end
-		// $display($realtime, "head = %d", head);
+		// $display($realtime, "head = %d rstwb= %d", head, Rdest_status_wb);
 	end
 
 	always @(posedge clk) begin: updateRegStatus
