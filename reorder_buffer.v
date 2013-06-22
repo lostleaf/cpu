@@ -64,6 +64,7 @@ module reorder_buffer(CDB_data_data, CDB_data_valid, CDB_data_addr, busy,
 	
 
 	always @(posedge clk or posedge reset) begin
+		// $display($realtime, "reset = %b", reset);
 		if (reset) begin:rst
 			reg [WORD_SIZE-1:0]	i;
 			for (i = 0; i <  RB_SIZE; i = i + 1) begin
@@ -82,9 +83,9 @@ module reorder_buffer(CDB_data_data, CDB_data_valid, CDB_data_addr, busy,
 		end
 		else 
 			// $display(RB_inst[back][31:28]);
+			$display($realtime, "notFull = %b", notFull(head, back));
 			if (notFull(head, back) && RB_inst[back][31:28] !== INST_HALT)  begin: IF
 				cache_enable = 1;
-				//$display($realtime, "inst = %b", inst);
 				#0.5 if (hit) begin
 				end
 				else begin
@@ -144,6 +145,7 @@ module reorder_buffer(CDB_data_data, CDB_data_valid, CDB_data_addr, busy,
 					end
 				else begin 	end
 			end
+			$display($realtime, "free = %b fuend = %0d", free, fuend);
 			//getRegStatusIssue
 			if (!free) begin
 				we_status_issue = 1'b0;

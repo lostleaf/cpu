@@ -64,5 +64,6 @@ module data_memory (ptr_in, in_block,
             memory[ptr_block_in+12],memory[ptr_block_in+13],memory[ptr_block_in+14],
             memory[ptr_block_in+15]} = in_block;
         end
+        // $writememh("mem.hex",memory);
     end
 endmodule

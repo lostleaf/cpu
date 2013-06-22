@@ -107,7 +107,7 @@ module load_RS(fu, RB_index, inst, vj, vk,  qj, qk,
                         end
                         else begin
                             c_read_enable = 1'b1;
-                            c_ptr = Vj - Vk;
+                            c_ptr = Vj + Vk;
                             ok = 0;
                         end
                     end
