@@ -268,6 +268,8 @@ module reorder_buffer(CDB_data_data, CDB_data_valid, CDB_data_addr, busy,
 						cnt        = 1;
 						cnt_enable = 1'b1;
 					end else begin	end
+					$display($realtime, "mem_hit = %b, we:%g, wd:%g, ws:%g", 
+								mem_hit, we_mem, wd_mem, ws_mem);
 				end
 		end
 		else begin

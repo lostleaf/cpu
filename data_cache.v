@@ -60,7 +60,26 @@ module data_cache(ptr_read1,    ptr_read2,    ptr_read3,
     end
 
     always @(posedge clk) begin
+        if (read_enable1 || read_enable2 || read_enable3) begin
+            if (read_enable1)
+                read_data(dirty[index_r1], valid[index_r1], tag[index_r1], 
+                        data_tag_r1, cache[index_r1], offset_r1, hit_read1, out1,
+                        out_mem_block1);
+            if (read_enable2)
+                read_data(dirty[index_r2], valid[index_r2], tag[index_r2], 
+                        data_tag_r2, cache[index_r2], offset_r2, hit_read2, out2,
+                        out_mem_block2);
+            if (read_enable3)
+                read_data(dirty[index_r3], valid[index_r3], tag[index_r3], 
+                        data_tag_r3, cache[index_r3], offset_r3, hit_read3, out3,
+                        out_mem_block3);
+            // $display("h : %b %d" , hit_read1, out_mem_block1);
+        end
+        // $display(cache[0]);
 
+    end
+
+    always @(negedge clk) begin
         if (write_enable) begin
             if (tag[index_w] == data_tag_w && valid[index_w]) begin 
                 hit_write      = 1;
@@ -98,25 +117,8 @@ module data_cache(ptr_read1,    ptr_read2,    ptr_read3,
                     ) ^ cache[index_w];
                 $display(cache[0]);
             end
+            $display($realtime, ": dcache[%g]  = %g",ptr_write, cache[index_w]);
         end
-
-        if (read_enable1 || read_enable2 || read_enable3) begin
-            if (read_enable1)
-                read_data(dirty[index_r1], valid[index_r1], tag[index_r1], 
-                        data_tag_r1, cache[index_r1], offset_r1, hit_read1, out1,
-                        out_mem_block1);
-            if (read_enable2)
-                read_data(dirty[index_r2], valid[index_r2], tag[index_r2], 
-                        data_tag_r2, cache[index_r2], offset_r2, hit_read2, out2,
-                        out_mem_block2);
-            if (read_enable3)
-                read_data(dirty[index_r3], valid[index_r3], tag[index_r3], 
-                        data_tag_r3, cache[index_r3], offset_r3, hit_read3, out3,
-                        out_mem_block3);
-            // $display("h : %b %d" , hit_read1, out_mem_block1);
-        end
-        // $display(cache[0]);
-
     end
 
     task read_data;
