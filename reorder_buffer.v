@@ -222,6 +222,7 @@ module reorder_buffer(CDB_data_data, CDB_data_valid, CDB_data_addr, busy,
 		end
 		if (RB_valid[inc(head)] && RB_data_valid[inc(head)]) begin
 			head = inc(head);
+			RB_valid[head] = 1'b0;
 			$display("write back %0d %b", head, RB_inst[head]);
 			if (RB_inst[head][INST_START:INST_START-OPCODE_WIDTH+1] == INST_BGE) begin
 				we_mem       <= 1'b0;
