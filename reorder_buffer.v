@@ -96,8 +96,10 @@ module reorder_buffer(CDB_data_data, CDB_data_valid, CDB_data_addr, busy,
 				else begin
 					#(MEM_STALL-1) begin end
 				end
-				if (inst[WORD_SIZE-1:WORD_SIZE-OPCODE_WIDTH] === INST_J)
+				if (inst[WORD_SIZE-1:WORD_SIZE-OPCODE_WIDTH] === INST_J)begin
 					pc = inst[J_PCOFFSET_START:0];
+					$display("set pc by jump %0d", pc);
+				end
 				else begin:addInst
 					back = inc(back);
 					//RB_PC[back] = pc;
@@ -182,8 +184,8 @@ module reorder_buffer(CDB_data_data, CDB_data_valid, CDB_data_addr, busy,
 		reg [OPCODE_WIDTH-1:0]	op;
 
 		hasBranch  = 1'b0;
-		#0.1 for (i = head; i != inc(tail); i = (i + 1) % RB_SIZE ) begin
-			// $display("%d %b", readValidBus(CDB_data_valid, i), RB_inst[i]);
+		#0.1 for (i = inc(head); i != inc(tail); i = (i + 1) % RB_SIZE ) begin
+			$display("%0d %d %b", i, readValidBus(CDB_data_valid, i), RB_inst[i]);
 			if (readValidBus(CDB_data_valid, i)) begin
 				op               = RB_inst[i][INST_START:INST_START-OPCODE_WIDTH+1];
 				RB_data[i]       = readDataBus(CDB_data_data, i);
@@ -209,16 +211,18 @@ module reorder_buffer(CDB_data_data, CDB_data_valid, CDB_data_addr, busy,
 					RB_valid[i] = 1'b0;
 					$display($realtime, "kill inst %b", RB_inst[i]);
 				end
+				// $display("jump ot %0d %0d %0d %0d %0d", target, head, tail, back, mark);
 				mark = dec(mark);
 				tail = mark;
 				back = mark;
+				// $display("jump ot %0d %0d %0d %0d %0d", target, head, tail, back, mark);
 				#0.1 reset_out = 'b0;
 			end
 		end
 	end
 
 	always @(posedge clk) begin: writeBack	// issue the command at posedge, the the execution unit truly write data at negedge
-		// $display($realtime, " %b", RB_inst[inc(head)]);
+		// $display($realtime, " %b %b %b", RB_inst[inc(head)], l[inc(head)] , RB_data_valid[inc(head)]);
 		if (RB_inst[inc(head)][31:28] === INST_HALT)begin
 			$display("stop");	
 			$finish;
@@ -380,7 +384,7 @@ module reorder_buffer(CDB_data_data, CDB_data_valid, CDB_data_addr, busy,
 	function[RB_INDEX-1:0] dec;
 		input[RB_INDEX-1:0] ptr;
 	begin
-		dec = (ptr-1)%RB_SIZE;
+		dec = ptr == 0 ? 14 : ptr-1;
 	end
 	endfunction
 

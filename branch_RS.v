@@ -84,11 +84,12 @@ module branch_RS (fu, RB_index, inst, vj, vk,  qj, qk,
             ok = 1'b1;
             checkAndGetData(Qj, Vj, CDB_data_data, CDB_data_valid, ok);
             checkAndGetData(Qk, Vk, CDB_data_data, CDB_data_valid, ok);
-             $display($realtime, ": branch exe j<n:%g, v,%g, q:%g, V:%g, Q:%g>",
-                            reg_numj, vj, qj, Vj, Qj);
+             // $display($realtime, ": branch exe j<n:%g, v,%g, q:%g, V:%g, Q:%g>",
+             //                reg_numj, vj, qj, Vj, Qj);
                 
             #0.1 if (ok) begin
                 result = Vj >= Vk;
+                $display("branch taken? %g", result);
                 valid = 1'b1;
                 busy = 1'b0;
                 #0.5 dest = NULL;

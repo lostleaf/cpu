@@ -37,5 +37,4 @@ L2:
 addi $a3, $a3, 1
 j L1
 L0:
-
-
+halt

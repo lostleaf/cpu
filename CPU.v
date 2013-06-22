@@ -170,65 +170,12 @@ module CPU;
 
 
     // for test
-    always begin:test
+    initial begin:test
 
-        reg[WORD_SIZE-1:0] i;
-        // $dumpfile("CPU2.vcd");
-        // $dumpvars;
-        // $display("fu num : ", FU_NUM);
-
-        /*$monitor("%g: CDB: 1:<v:%b, d:%g, a:%g>, 2:<v:%b, d:%g, a:%g>, busy: 0:%g, 1:%g",
-            $realtime,
-            CDB_data_valid[1], CDB_data_data[2*WORD_SIZE-1:WORD_SIZE], CDB_data_addr[2*WORD_SIZE-1:WORD_SIZE], 
-            CDB_data_valid[2], CDB_data_data[3*WORD_SIZE-1:2*WORD_SIZE], CDB_data_addr[3*WORD_SIZE-1:2*WORD_SIZE],
-            busy[0], busy[1]);*/
-        //$monitor($realtime, ": V:%b\nd:%h\naddr:%h\nbusy:%b",CDB_data_valid[4:0], CDB_data_data[4*WORD_SIZE-1:0], CDB_data_addr[4*WORD_SIZE-1:0], busy);
-        // $monitor($realtime,": V:%b\nD:1:%g, 2:%g, 3:%g\naddr:1:%g, 2:%g, 3:%g", 
-        //             CDB_data_valid,
-        //             CDB_data_data[2*WORD_SIZE-1:WORD_SIZE], 
-        //             CDB_data_data[3*WORD_SIZE-1:2*WORD_SIZE], 
-        //             CDB_data_data[4*WORD_SIZE-1:3*WORD_SIZE],
-        //             CDB_data_addr[2*WORD_SIZE-1:WORD_SIZE], 
-        //             CDB_data_addr[3*WORD_SIZE-1:2*WORD_SIZE], 
-        //             CDB_data_addr[4*WORD_SIZE-1:3*WORD_SIZE]);
-        
-        /*$monitor($realtime, "inst:%b, fu:%d, RB_index = %d", 
-            CDB_inst_inst, CDB_inst_fu, CDB_inst_RBindex);*/
-        
         reset = 1;
         #1 reset = 0;
-        //init reg
-        /*for (i = 0; i < REG_FILE_SIZE; i = i+1) begin
-            #1   we_reg = 1'b1;
-                 ws_reg = i;
-                 wd_reg = i;
-        end
 
-        rs = 0;
-        rd = 1;
-        rt = 2;
-        // test of ALU_RS
-        #1for (i = 5'b0; i < ADDER_NUM; i = i+1) begin
-                fu = i;
-                RBindex = i;
-                rs = rs+1;
-                rt = rt+1;
-
-            #1 begin end
-        end*/
-
-        /*#1for (i = 5'b0; i < STORER_NUM; i = i+1) begin
-                fu = FU_NUM-STORER_NUM+i;
-                RBindex = i;
-                rs = rs+1;
-                rt = rt+1;
-                rd = rd+1;
-
-            #1 begin end
-        end
-        */
-
-        #1000 $finish;
+        // #1000 $finish;
     end
 
     task setWriteBy;

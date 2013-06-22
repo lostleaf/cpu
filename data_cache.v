@@ -81,9 +81,9 @@ module data_cache(ptr_read1,    ptr_read2,    ptr_read3,
     end
 
     always @(negedge clk) begin
-        $display("write cache? %b", write_enable);
+        // $display("write cache? %b", write_enable);
         if (write_enable) begin
-            $display("cache writed");
+            // $display("cache writed");
             if (tag[index_w] == data_tag_w && valid[index_w]) begin 
                 hit_write      = 1;
                 dirty[index_w] = 1;
