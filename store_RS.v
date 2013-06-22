@@ -102,7 +102,7 @@ module store_RS(fu, RB_index, inst,vi, vj, vk, qi, qj, qk,
 					data = Vi;
 					valid = 1'b1;
 					busy = 1'b0;
-					$display("(%g) = %g", result, data);
+					$display("(%0d+%0d %g) = %g", Vj, Vk, result, data);
 					#0.5 dest = NULL;
 					#0.8 valid = 0'b0;
 					
@@ -157,7 +157,7 @@ module store_RS(fu, RB_index, inst,vi, vj, vk, qi, qj, qk,
 		inout ok;
 		reg valid;
 		begin
-			//$display("<Q:%g, V:%g>", Q, V);
+			// $display("<Q:%g, V:%g>", Q, V);
 			if (Q === READY) begin end
 			else begin 
 				valid = readValidBus(validBus, Q);
