@@ -14,13 +14,13 @@ public class Scheduler {
 	
 	public Scheduler(LinkedList<Asm> asmList) {
 		asms = new ArrayList(asmList);
-		//System.out.println(asms);
+		System.out.println(asms);
 	}
 	
 	public ArrayList<Asm> reSchedule() throws roxanne.error.Error {
 		buildGraph();
 		ArrayList<Node> nodes = reSchedule(root);
-		//System.out.println(nodes);
+		System.out.println(nodes);
 		int p = 0;
 		for(int i = front; i <= back; ++i) {
 			for(; p < nodes.size(); ++p) {
@@ -63,8 +63,11 @@ public class Scheduler {
 		fromEnd -= stallCnt+1;
 		ArrayList<Node> toCopy = (ArrayList<Node>) to.clone();
 		int insertPos = toEnd-Asm.getStall(from.get(fromEnd+1).asm.op)-1;
-		if (insertPos < 0)
-			throw new Error(insertPos+", "+from.get(fromEnd+1));
+		if (insertPos < 0) {
+			for (; insertPos < 0; ++insertPos) {
+				to.add(0, new Node(null, null, null, null));
+			}
+		}
 		if (isStall(to.get(insertPos))) {
 			to.set(insertPos, from.get(fromEnd+1));
 			merge(to, insertPos, from, fromEnd);
@@ -120,6 +123,9 @@ public class Scheduler {
 				l = r;
 			}
 		}
+		
+		System.out.println(n);
+		System.out.println(l);
 		
 		return l;
 	}
