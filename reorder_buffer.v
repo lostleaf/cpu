@@ -189,8 +189,10 @@ module reorder_buffer(CDB_data_data, CDB_data_valid, CDB_data_addr, busy,
 				RB_data[i]       = readDataBus(CDB_data_data, i);
 				RB_data_valid[i] = 1'b1;
 			// $display($realtime, "  rb data valid ", head, "   ", tail, "  ", i);
-				if (RB_to_mem[i] || op == INST_BGE) 
+				if (RB_to_mem[i] || op == INST_BGE)  begin
 					RB_addr[i] = readDataBus(CDB_data_addr, i);
+					$display($realtime, ": RB_addr[%g]=%g",i, RB_addr[i]);
+				end
 				if (op == INST_BGE) begin
 					// $display("find branch");
 					hasBranch = 1'b1;
@@ -252,11 +254,12 @@ module reorder_buffer(CDB_data_data, CDB_data_valid, CDB_data_addr, busy,
 					end
 				end
 				else begin:writeToMem
+					$display("intend to write memory");
 					we_reg    = 1'b0;
 					we_status_wb = 1'b0;
 
-					if (cnt_enable && cnt < MEM_STALL)
-						#(MEM_STALL-cnt) begin end
+					// if (cnt_enable && cnt < MEM_STALL)
+					// 	#(MEM_STALL-cnt) begin end
 					cnt = 0;
 					cnt_enable = 1'b0;
 
