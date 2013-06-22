@@ -59,8 +59,7 @@ module branch_RS (fu, RB_index, inst, vj, vk,  qj, qk,
                 busy  <= 1'b1;
                 dest  <= RB_index;
                 op = inst[WORD_SIZE-1:WORD_SIZE-OPCODE_WIDTH];
-
-                //op must be INST_BGE
+               //op must be INST_BGE
                 reg_numj = inst[RD_START: RD_START-REG_INDEX+1];
                 // $display($realtime, "branch reg numj %0d", reg_numj);
                 getData(vj, qj, Vj, Qj, CDB_data_data, CDB_data_valid);
@@ -68,7 +67,9 @@ module branch_RS (fu, RB_index, inst, vj, vk,  qj, qk,
                 Vk = inst[BGE_IMM_START:BGE_PCOFFSET_START+1];
 
                 Qk = READY;
-                
+                $display($realtime, ": branch issue j<n:%g, v,%g, q:%g, V:%g, Q:%g>",
+                            reg_numj, vj, qj, Vj, Qj);
+                 
                 #0.1;
                 reg_numj = 'bz;
                 reg_numk = 'bz;
@@ -83,6 +84,9 @@ module branch_RS (fu, RB_index, inst, vj, vk,  qj, qk,
             ok = 1'b1;
             checkAndGetData(Qj, Vj, CDB_data_data, CDB_data_valid, ok);
             checkAndGetData(Qk, Vk, CDB_data_data, CDB_data_valid, ok);
+             $display($realtime, ": branch exe j<n:%g, v,%g, q:%g, V:%g, Q:%g>",
+                            reg_numj, vj, qj, Vj, Qj);
+                
             #0.1 if (ok) begin
                 result = Vj >= Vk;
                 valid = 1'b1;

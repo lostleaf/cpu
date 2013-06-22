@@ -204,9 +204,10 @@ module reorder_buffer(CDB_data_data, CDB_data_valid, CDB_data_addr, busy,
 			// $display("branch taken? %b", RB_data[mark]);
 			if (RB_data[mark]) begin
 				pc = target;
-				for (i = mark; i != inc(tail); i = inc(tail)) begin
+				for (i = mark; i != inc(back); i = inc(i)) begin
 					reset_out = reset_out | (1'b1<<RB_fu[i]);
 					RB_valid[i] = 1'b0;
+					$display($realtime, "kill inst %b", RB_inst[i]);
 				end
 				mark = dec(mark);
 				tail = mark;

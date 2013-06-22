@@ -1,0 +1,12 @@
+package roxanne.asm;
+
+public class Node {
+	Asm asm;
+	Node l, r;
+	
+	public Node(Asm a, Node ll, Node rr) {
+		asm = a;
+		l = ll;
+		r = rr;
+	}
+}

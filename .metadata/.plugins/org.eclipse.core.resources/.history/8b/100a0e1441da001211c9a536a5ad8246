@@ -1,0 +1,5 @@
+package roxanne.asm;
+
+public class Node {
+
+}

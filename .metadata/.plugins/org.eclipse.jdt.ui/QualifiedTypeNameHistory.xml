@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<qualifiedTypeNameHistroy>
+<fullyQualifiedTypeName name="roxanne.quad.Quad.ConstMode"/>
+<fullyQualifiedTypeName name="roxanne.translate.Level"/>
+<fullyQualifiedTypeName name="roxanne.addr.Temp"/>
+<fullyQualifiedTypeName name="roxanne.symbol.Symbol"/>
+<fullyQualifiedTypeName name="roxanne.quad.Move"/>
+<fullyQualifiedTypeName name="java.util.ArrayList"/>
+<fullyQualifiedTypeName name="com.sun.corba.se.impl.orbutil.graph.Node"/>
+<fullyQualifiedTypeName name="roxanne.asm.Asm.Op"/>
+<fullyQualifiedTypeName name="javax.swing.text.html.HTMLDocument.Iterator"/>
+<fullyQualifiedTypeName name="roxanne.analysis.Scheduler"/>
+<fullyQualifiedTypeName name="com.sun.org.apache.bcel.internal.Constants"/>
+<fullyQualifiedTypeName name="java.util.LinkedList"/>
+<fullyQualifiedTypeName name="roxanne.asm.Asm"/>
+</qualifiedTypeNameHistroy>
