@@ -6,3 +6,5 @@ other/
 *~
 .svn
 *.vcd
+resul*.txt
+test_*

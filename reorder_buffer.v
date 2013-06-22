@@ -135,7 +135,7 @@ module reorder_buffer(CDB_data_data, CDB_data_valid, CDB_data_addr, busy,
 					
 					RB_data_valid[tail] = 1'b0;
 					RB_fu[tail]         = i;
-					$display($realtime, "issuing to %d: op = %h, %b",i, op, inst_now);
+					$display($realtime, "issuing to %d: op = %h, %b tail= %0d",i, op, inst_now, tail);
 					if (op === INST_SWRR || op === INST_SW) begin
 						RB_to_mem[tail] = 1'b1;
 					end
@@ -149,7 +149,7 @@ module reorder_buffer(CDB_data_data, CDB_data_valid, CDB_data_addr, busy,
 					end
 				else begin 	end
 			end
-			// $display($realtime, "free = %b fuend = %0d", free, fuend);
+			$display($realtime, "free = %b fuend = %0d %b", free, fuend, inst_now);
 			//getRegStatusIssue
 			if (!free) begin
 				we_status_issue = 1'b0;
