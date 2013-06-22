@@ -62,6 +62,8 @@ module store_RS(fu, RB_index, inst,vi, vj, vk, qi, qj, qk,
 
 						reg_numi = inst[RD_START: RD_START-REG_INDEX+1];
 						reg_numj = inst[RS_START: RS_START-REG_INDEX+1];
+				$display($realtime,"validbus = %b", CDB_data_valid);
+						
 						getData(vi, qi, Vi, Qi, CDB_data_data, CDB_data_valid);
 						getData(vj, qj, Vj, Qj, CDB_data_data, CDB_data_valid);
 						if (op === INST_SWRR) begin
@@ -119,9 +121,11 @@ module store_RS(fu, RB_index, inst,vi, vj, vk, qi, qj, qk,
 		input[RB_SIZE-1:0]				CDB_data_valid;
 		begin
 			if (q === READY) begin
+				$display($realtime, "read from reg_file");
 				V = v;
 				Q = READY;
 			end	else if (readValidBus(CDB_data_valid, q)) begin
+						$display($realtime, "read from databus[%g]",q);
 						V = readDataBus(CDB_data_data, q);
 						Q = READY;
 					end
@@ -158,6 +162,7 @@ module store_RS(fu, RB_index, inst,vi, vj, vk, qi, qj, qk,
 			else begin 
 				valid = readValidBus(validBus, Q);
 				if (valid) begin
+					$display($realtime, "read from databus[%g]",Q);
 					V = readDataBus(dataBus, Q);
 					Q = READY;
 				end else ok = 1'b0;
