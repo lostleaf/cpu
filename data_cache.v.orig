@@ -80,7 +80,6 @@ module data_cache(ptr_read1,    ptr_read2,    ptr_read3,
     end
 
 <<<<<<< HEAD
-    always @(negedge clk) begin
 =======
         if (read_enable1 || read_enable2 || read_enable3) begin
             if (read_enable1)
@@ -101,9 +100,9 @@ module data_cache(ptr_read1,    ptr_read2,    ptr_read3,
 
     end
 
+>>>>>>> 54bebb3941ed14339c098b15c1c84c6e1d1da75d
     always @(negedge clk) begin
         $display("write cache? %b", write_enable);
->>>>>>> 8346e54445bd855890cff0c0fcf496d88ef9d724
         if (write_enable) begin
             $display("cache writed");
             if (tag[index_w] == data_tag_w && valid[index_w]) begin 
@@ -145,6 +144,7 @@ module data_cache(ptr_read1,    ptr_read2,    ptr_read3,
             $display($realtime, ": dcache[%g]  = %g",ptr_write, cache[index_w]);
         end
     end
+
 
     task read_data;
         inout dirty, valid;

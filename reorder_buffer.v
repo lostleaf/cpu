@@ -103,7 +103,7 @@ module reorder_buffer(CDB_data_data, CDB_data_valid, CDB_data_addr, busy,
 					//RB_PC[back] = pc;
 					RB_valid[back] = 1'b1;
 					RB_inst[back] = inst;
-					$display($realtime, "pc : %d, RB_inst[%0d] = %b", pc , back, inst);
+					$display($realtime, "pc : %d, RB_inst[%0d] = %b", pc , back, RB_inst[back]);
 					pc = pc+1;
 				end 
 			end
@@ -182,7 +182,11 @@ module reorder_buffer(CDB_data_data, CDB_data_valid, CDB_data_addr, busy,
 		reg [OPCODE_WIDTH-1:0]	op;
 
 		hasBranch  = 1'b0;
-		#0.1 for (i = head; i != inc(tail); i = (i + 1) % RB_SIZE ) begin
+		$display($realtime, "0back inst[%g] = %b", back, RB_inst[i]);
+
+		#0.1 
+		$display($realtime, "1back inst[%g] = %b", back, RB_inst[i]);
+		for (i = inc(head); i != inc(tail); i = inc(i) ) begin
 			// $display("%d %b", readValidBus(CDB_data_valid, i), RB_inst[i]);
 			if (readValidBus(CDB_data_valid, i)) begin
 				op               = RB_inst[i][INST_START:INST_START-OPCODE_WIDTH+1];
@@ -209,8 +213,9 @@ module reorder_buffer(CDB_data_data, CDB_data_valid, CDB_data_addr, busy,
 				for (i = mark; i != inc(back); i = inc(i)) begin
 					reset_out = reset_out | (1'b1<<RB_fu[i]);
 					RB_valid[i] = 1'b0;
-					$display($realtime, "kill inst %b", RB_inst[i]);
+					$display($realtime, "kill inst[%g] %b",i,  RB_inst[i]);
 				end
+				$display($realtime, "back inst[%g] = %b", back, RB_inst[i]);
 				mark = dec(mark);
 				tail = mark;
 				back = mark;
@@ -258,8 +263,8 @@ module reorder_buffer(CDB_data_data, CDB_data_valid, CDB_data_addr, busy,
 					we_reg    = 1'b0;
 					we_status_wb = 1'b0;
 
-					// if (cnt_enable && cnt < MEM_STALL)
-					// 	#(MEM_STALL-cnt) begin end
+					if (cnt_enable && cnt < MEM_STALL)
+					 	#(MEM_STALL-cnt) begin end
 					cnt = 0;
 					cnt_enable = 1'b0;
 
@@ -384,7 +389,7 @@ module reorder_buffer(CDB_data_data, CDB_data_valid, CDB_data_addr, busy,
 	function[RB_INDEX-1:0] dec;
 		input[RB_INDEX-1:0] ptr;
 	begin
-		dec = (ptr-1)%RB_SIZE;
+		dec = ptr? ptr-1:(RB_SIZE-1);
 	end
 	endfunction
 

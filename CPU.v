@@ -150,7 +150,7 @@ module CPU;
     reorder_buffer RB(.CDB_data_data(CDB_data_data), 
         .CDB_data_valid(CDB_data_valid), .CDB_data_addr(CDB_data_addr), 
         .busy(busy), .we_reg(we_reg), .wd_reg(wd_reg), .ws_reg(ws_reg), 
-        .we_mem(we_dcache), .wd_mem(wd_dcache), .ws_mem(ws_dcache), 
+        .we_mem(cache_write_enable), .wd_mem(cache_val), .ws_mem(cache_ptr_write), 
         //.numj(numj), .numk(numk),
         //.vj(vj), .vk(vk), .qj(qj), .qk(qk),
         .numRB(numRB), .qRB(qRB), 

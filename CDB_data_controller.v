@@ -63,7 +63,7 @@ module CDB_data_controller(CDB_data_data, CDB_data_valid, CDB_data_addr,
 
 			//data = 'b0;
 			for (i = 0; i < STORER_NUM; i = i+1) begin
-				index = readIndex(RB_index_bus, FU_NUM-STORER_NUM+i);
+				index = readIndex(RB_index_bus, STORER_START+i);
 				if (index == NULL)	begin 
 					data = data | (CDB_data_addr & (mask<<(WORD_SIZE*index)));
 				end /*else if (!readValid(valid_bus, i)) begin end*/

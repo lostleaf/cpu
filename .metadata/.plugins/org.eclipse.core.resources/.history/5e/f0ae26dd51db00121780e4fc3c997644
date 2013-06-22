@@ -15,7 +15,7 @@ public class Scheduler {
 	
 	public Scheduler(LinkedList<Asm> asmList) {
 		asms = new ArrayList(asmList);
-		//System.out.println(asms);
+		System.out.println(asms);
 	}
 	
 	/*public ArrayList<Asm> unroll(int times) throws roxanne.error.Error {

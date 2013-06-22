@@ -119,9 +119,9 @@ public class Main {
 	
 	public static void main(String argv[]) throws IOException{
 		//System.out.println(pathOf(argv[0]));
-		compile(argv[0]);
+		//compile(argv[0]);
 		
-		//compile(pathOf("newtest.c"));
+		compile(pathOf("newtest.c"));
 		//getTokens(pathOf("example2.c"));
 		//getTokens(pathOf("example3.c"));
 		//getTokens(pathOf("newtest.c"));

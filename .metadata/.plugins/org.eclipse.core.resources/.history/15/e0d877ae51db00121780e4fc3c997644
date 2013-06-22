@@ -15,24 +15,22 @@ public class Scheduler {
 	
 	public Scheduler(LinkedList<Asm> asmList) {
 		asms = new ArrayList(asmList);
-		//System.out.println(asms);
+		System.out.println(asms);
 	}
 	
-	/*public ArrayList<Asm> unroll(int times) throws roxanne.error.Error {
+	public ArrayList<Asm> unroll(int times) throws roxanne.error.Error {
 		findStartEnd();
 		Asm add = asms.get(back+2);
 		ArrayList<Asm> asmtail = (ArrayList<Asm>) asms.subList(back+1, asms.size());
 		while(asms.size()>back+1) asms.remove(asms.size()-1);
 		
-		for (int i = 0; i < times; ++i) {
-			
-		}
-	}*/
+		
+	}
 	
 	public ArrayList<Asm> reSchedule() throws roxanne.error.Error {
 		buildGraph();
 		ArrayList<Node> nodes = reSchedule(root);
-		//System.out.println(nodes);
+		System.out.println(nodes);
 		int p = 0;
 		for(int i = front; i <= back; ++i) {
 			for(; p < nodes.size(); ++p) {
@@ -136,8 +134,8 @@ public class Scheduler {
 			}
 		}
 		
-		//System.out.println(n);
-		//System.out.println(l);
+		System.out.println(n);
+		System.out.println(l);
 		
 		return l;
 	}

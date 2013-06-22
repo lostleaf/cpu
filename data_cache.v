@@ -123,7 +123,6 @@ module data_cache(ptr_read1,    ptr_read2,    ptr_read3,
         end
     end
 
-
     task read_data;
         inout dirty, valid;
         inout [TAG_SIZE-1:0] tag;
