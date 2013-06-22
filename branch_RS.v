@@ -73,19 +73,21 @@ module branch_RS (fu, RB_index, inst, vj, vk,  qj, qk,
                 reg_numk = 'bz;
                 valid <= 1'b0;
             end
-        end else begin: execute
-                reg ok;
-                ok = 1'b1;
-                checkAndGetData(Qj, Vj, CDB_data_data, CDB_data_valid, ok);
-                checkAndGetData(Qk, Vk, CDB_data_data, CDB_data_valid, ok);
-                if (ok) begin
-                    result = Vj >= Vk;
-                    valid = 1'b1;
-                    busy = 1'b0;
-                    #1.3 valid = 0'b0;
-                    dest = NULL;
-                end
-            end
+        end
+    end
+
+    always @(posedge clk) begin: execute
+        reg ok;
+        ok = 1'b1;
+        checkAndGetData(Qj, Vj, CDB_data_data, CDB_data_valid, ok);
+        checkAndGetData(Qk, Vk, CDB_data_data, CDB_data_valid, ok);
+        if (ok) begin
+            result = Vj >= Vk;
+            valid = 1'b1;
+            busy = 1'b0;
+            #1.3 valid = 0'b0;
+            dest = NULL;
+        end
     end
     
     task getData;   //(v, q, CDB_data_data, CDB_data_valid, V, Q)

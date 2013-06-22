@@ -39,25 +39,24 @@ class Assembler
     def step2
         @insts.each do |inst_code, ops, inst_ori|
             opsc = ops.collect { |op| convert_reg_name op} if ops
+            @output.puts "#{inst_ori}"
             case inst_code
             when 0..4       #add..swrr
-                @output.puts "%04b_%05b_%05b_%05b_#{'0'*13}" % [inst_code, *opsc]
+                @output.puts "\#%04b_%05b_%05b_%05b_#{'0'*13}" % [inst_code, *opsc]
             when 5..9       #addi..sw
-                @output.puts "%04b_%05b_%05b_%018b" % [inst_code, *opsc]
-                # @output.puts "#%04b_%05d_%05d_%018d" % [inst_code, *opsc]
+                @output.puts "\#%04b_%05b_%05b_%018b" % [inst_code, *opsc]
             when 10         #li
-                @output.puts "%04b_%05b_%023b" % [inst_code, *opsc]
+                @output.puts "\#%04b_%05b_%023b" % [inst_code, *opsc]
             when 11         #j
-                @output.puts "%04b_%028b" % [inst_code, @label_map[opsc[0]]]
+                @output.puts "\#%04b_%028b" % [inst_code, @label_map[opsc[0]]]
             when 12         #jr
-                @output.puts "%04b_%05b_#{'0'*23}" % [inst_code, opsc[0]]
+                @output.puts "\#%04b_%05b_#{'0'*23}" % [inst_code, opsc[0]]
             when 13         #bge
-                @output.puts "%04b_%05b_%010b_%013b" % 
+                @output.puts "\#%04b_%05b_%010b_%013b" % 
                 [inst_code, *opsc[0..1], @label_map[opsc[2]]]
             when 14         #halt
-                @output.puts "%04b_%028b" % [inst_code, 0]
+                @output.puts "\#%04b_%028b" % [inst_code, 0]
             end
-            # @output.puts "\# #{inst_ori}"
         end
     end
 

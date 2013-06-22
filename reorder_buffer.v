@@ -83,7 +83,7 @@ module reorder_buffer(CDB_data_data, CDB_data_valid, CDB_data_addr, busy,
 		end
 		else 
 			// $display(RB_inst[back][31:28]);
-			$display($realtime, "notFull = %b", notFull(head, back));
+			// $display($realtime, "notFull = %b", notFull(head, back));
 			if (notFull(head, back) && RB_inst[back][31:28] !== INST_HALT)  begin: IF
 				cache_enable = 1;
 				#0.5 if (hit) begin
@@ -98,7 +98,7 @@ module reorder_buffer(CDB_data_data, CDB_data_valid, CDB_data_addr, busy,
 					//RB_PC[back] = pc;
 					RB_valid[back] = 1'b1;
 					RB_inst[back] = inst;
-					$display($realtime, "pc : %d, get inst: %b", pc , inst);
+					$display($realtime, "pc : %d, RB_inst[%0d] = %b", pc , back, inst);
 					pc = pc+1;
 				end 
 			end
@@ -145,7 +145,7 @@ module reorder_buffer(CDB_data_data, CDB_data_valid, CDB_data_addr, busy,
 					end
 				else begin 	end
 			end
-			$display($realtime, "free = %b fuend = %0d", free, fuend);
+			// $display($realtime, "free = %b fuend = %0d", free, fuend);
 			//getRegStatusIssue
 			if (!free) begin
 				we_status_issue = 1'b0;
@@ -154,7 +154,7 @@ module reorder_buffer(CDB_data_data, CDB_data_valid, CDB_data_addr, busy,
 			else begin
 				if (op != INST_SW && op != INST_SWRR && op != INST_BGE && op != INST_HALT) begin
 					//j or jr will not in RB, branch will set free = 0;
-					$display("%b %b", RB_inst[tail], op);
+					// $display("%b %b", RB_inst[tail], op);
 					Rdest_status_issue    = getRdest(RB_inst[tail]);
 					we_status_issue       = 1'b1;
 					RB_index_status_issue = tail;

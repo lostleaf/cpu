@@ -44,7 +44,11 @@ module ALU_RS(fu, RB_index, inst, vj, vk, qj, qk,
 	assign reset = reset_bus[fuindex];
 
 	always @(posedge clk or posedge reset) begin
-		//$display($realtime, ": %d busy:%d, sees CDB_inst: %d, %b", busy, fuindex, fu, inst);
+		// $display($realtime, ": %d busy:%d, sees CDB_inst: %d, %b", fuindex, busy, fu, inst);
+		if (fuindex < 4) begin
+			
+		$display($realtime, " fu:%0d Qj Qk", fuindex, Qj, Qk);
+		end
 		if (reset) begin
 			busy <= 1'b0;
 			dest <= NULL;
