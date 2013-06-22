@@ -103,7 +103,7 @@ module load_RS(fu, RB_index, inst, vj, vk,  qj, qk,
             if (ok) begin
                 if (op === INST_LW || op === INST_LWRR) begin
                     if (c_read_enable) begin
-                        #0.2;
+                        #0.1;
                         result = c_out;
                         if (!c_hit) #MEM_STALL;
                         c_read_enable = 1'b0;
@@ -120,8 +120,8 @@ module load_RS(fu, RB_index, inst, vj, vk,  qj, qk,
             if (ok) begin
                 valid = 1'b1;
                 busy = 1'b0;
-                $display($realtime, " loader fu: %d freed op = %h", fuindex, op);
                 #1.3 valid = 0'b0;
+                $display($realtime, " loader fu: %d freed op = %h dest = %0d", fuindex, op, dest);
                 dest = NULL;
             end
         end

@@ -44,6 +44,7 @@ module branch_RS (fu, RB_index, inst, vj, vk,  qj, qk,
     assign reset                                                 = reset_bus[fuindex];
 
     always @(posedge clk or posedge reset) begin
+        $display("branch%d busy %b Qj %0d Qk %0d", fuindex, busy, Qj, Qk);
         if (reset) begin
             busy <= 1'b0;
             dest <= NULL;
