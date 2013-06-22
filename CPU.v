@@ -227,7 +227,7 @@ module CPU;
         end
         */
 
-        #300 $finish;
+        #1000 $finish;
     end
 
     task setWriteBy;
