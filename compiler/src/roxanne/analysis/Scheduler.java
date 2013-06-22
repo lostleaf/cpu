@@ -6,6 +6,7 @@ import java.util.*;
 import roxanne.addr.Temp;
 import roxanne.asm.*;
 import roxanne.asm.Asm.Op;
+import roxanne.error.Error;
 
 public class Scheduler {
 	private ArrayList<Asm> asms;
@@ -15,6 +16,15 @@ public class Scheduler {
 	public Scheduler(LinkedList<Asm> asmList) {
 		asms = new ArrayList(asmList);
 		System.out.println(asms);
+	}
+	
+	public ArrayList<Asm> unroll(int times) throws roxanne.error.Error {
+		findStartEnd();
+		Asm add = asms.get(back+2);
+		ArrayList<Asm> asmtail = (ArrayList<Asm>) asms.subList(back+1, asms.size());
+		while(asms.size()>back+1) asms.remove(asms.size()-1);
+		
+		
 	}
 	
 	public ArrayList<Asm> reSchedule() throws roxanne.error.Error {
@@ -132,7 +142,7 @@ public class Scheduler {
 	
 	private void buildGraph() throws Error {
 		
-		findStartEnd(asms);
+		findStartEnd();
 		//System.out.println("front:"+asms.get(front)+";back:"+ asms.get(back));
 		Asm a = null;
 		for (int i = front; i <= back; ++i) {
@@ -216,7 +226,7 @@ public class Scheduler {
 		}
 		return null;
 	}
-	private void findStartEnd(ArrayList<Asm> asms) {
+	private void findStartEnd() {
 		int cnt = 0, len = asms.size();
 		for (int i = 0; i < len; ++i) {
 			if (asms.get(i).op == Op.label) {
