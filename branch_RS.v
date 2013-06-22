@@ -76,7 +76,7 @@ module branch_RS (fu, RB_index, inst, vj, vk,  qj, qk,
         end
     end
 
-    always @(posedge clk) 
+    always @(posedge clk) begin
         if (busy) begin: execute
             reg ok;
             ok = 1'b1;
