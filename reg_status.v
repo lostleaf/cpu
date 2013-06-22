@@ -32,7 +32,7 @@ module reg_status(get_num1, get_num2, get_num3, value1, value2, value3, status1,
 
 	always @(negedge clk or posedge reset) begin:rs
 		reg[WORD_SIZE-1:0] i;
-		$display($realtime, " reg_status[11] = ", statuses[11]);
+		// $display($realtime, " reg_status[11] = ", statuses[11]);
 		if (reset) begin
 			for (i = 0; i < REG_FILE_SIZE; i = i+1) begin
 				statuses[i] = READY;

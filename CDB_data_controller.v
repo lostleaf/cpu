@@ -59,7 +59,7 @@ module CDB_data_controller(CDB_data_data, CDB_data_valid, CDB_data_addr,
 			//CDB_data_data = data;
 			//CDB_data_valid = valid;
 			// if (218<=$realtime<=220)
-			$display($realtime, "valid:%b, CDB_data_valid:%b",valid, CDB_data_valid);
+			// $display($realtime, "valid:%b, CDB_data_valid:%b",valid, CDB_data_valid);
 
 			//data = 'b0;
 			for (i = 0; i < STORER_NUM; i = i+1) begin
