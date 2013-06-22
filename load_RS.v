@@ -94,37 +94,39 @@ module load_RS(fu, RB_index, inst, vj, vk,  qj, qk,
         end
     end
 
-    always @(posedge clk) begin: execute
-        reg ok;
-        ok = 1'b1;
-        checkAndGetData(Qj, Vj, CDB_data_data, CDB_data_valid, ok);
-        checkAndGetData(Qk, Vk, CDB_data_data, CDB_data_valid, ok);
-        if (ok) begin
-            if (op === INST_LW || op === INST_LWRR) begin
-                if (c_read_enable) begin
-                    #0.2;
-                    result = c_out;
-                    if (!c_hit) #MEM_STALL;
-                    c_read_enable = 1'b0;
-                    ok = 1;
-                end
-                else begin
-                    c_read_enable = 1'b1;
-                    c_ptr = Vj + Vk;
-                    ok = 0;
+    always @(posedge clk) begin
+        if (busy) begin: execute
+            reg ok;
+            ok = 1'b1;
+            checkAndGetData(Qj, Vj, CDB_data_data, CDB_data_valid, ok);
+            checkAndGetData(Qk, Vk, CDB_data_data, CDB_data_valid, ok);
+            if (ok) begin
+                if (op === INST_LW || op === INST_LWRR) begin
+                    if (c_read_enable) begin
+                        #0.2;
+                        result = c_out;
+                        if (!c_hit) #MEM_STALL;
+                        c_read_enable = 1'b0;
+                        ok = 1;
+                    end
+                    else begin
+                        c_read_enable = 1'b1;
+                        c_ptr = Vj + Vk;
+                        ok = 0;
+                    end
                 end
             end
-        end
-        // #0.1;
-        if (ok) begin
-            valid = 1'b1;
-            busy = 1'b0;
-            $display($realtime, " loader fu: %d freed op = %h", fuindex, op);
-            #1.3 valid = 0'b0;
-            dest = NULL;
+            // #0.1;
+            if (ok) begin
+                valid = 1'b1;
+                busy = 1'b0;
+                $display($realtime, " loader fu: %d freed op = %h", fuindex, op);
+                #1.3 valid = 0'b0;
+                dest = NULL;
+            end
         end
     end
-    
+
     task getData;   //(v, q, CDB_data_data, CDB_data_valid, V, Q)
         input[WORD_SIZE-1:0] v;
         input[RB_INDEX-1:0]  q;
