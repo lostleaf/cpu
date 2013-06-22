@@ -220,10 +220,6 @@ module reorder_buffer(CDB_data_data, CDB_data_valid, CDB_data_addr, busy,
 			$display("stop");	
 			$finish;
 		end 
-		if (inc(head) == 6) begin
-			$display("RB_valid:%g, RB_data_valid:%g, tail = %g",
-			 RB_valid[inc(head)], RB_data_valid[inc(head)], tail);
-		end
 		if (RB_valid[inc(head)] && RB_data_valid[inc(head)]) begin
 			head = inc(head);
 			RB_valid[head] = 1'b0;

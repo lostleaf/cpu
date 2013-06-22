@@ -94,6 +94,7 @@ module store_RS(fu, RB_index, inst,vi, vj, vk, qi, qj, qk,
 				checkAndGetData(Qj, Vj, CDB_data_data, CDB_data_valid, ok);
 				checkAndGetData(Qk, Vk, CDB_data_data, CDB_data_valid, ok);
 				checkAndGetData(Qi, Vi, CDB_data_data, CDB_data_valid, ok);
+				$display($realtime, "in store ok = %g, Qi, Qj, Qk: %g,%g,%g", ok, Qi, Qj, Qk);
 				if (ok) begin
 					#0.1 result = Vj+Vk;
 					data = Vi;

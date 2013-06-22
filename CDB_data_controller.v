@@ -24,13 +24,21 @@ module CDB_data_controller(CDB_data_data, CDB_data_valid, CDB_data_addr,
 			reg[RB_SIZE-1:0]			valid, valid_each;
 			reg[RB_INDEX-1:0]			index;	
 			reg[WORD_SIZE-1:0]			i;
+			reg[WORD_SIZE-1:0]			mask;
+			reg							valid_mask;
 
 			data = 'b0;
 			valid = 'b0;
+			mask = ~'b0;
+			valid_mask = 1'b1;
 
 			for (i = 0; i < FU_NUM; i = i+1) begin
 				index = readIndex(RB_index_bus, i);
-				if (index == NULL || !readValid(valid_bus, i))	begin end
+				if (index == NULL || !readValid(valid_bus, i))	begin 
+					//$display("data = %h", (((CDB_data_data>>(WORD_SIZE*i))[WORD_SIZE-1:0])<<(WORD_SIZE*i)));
+					data = data | (CDB_data_data & (mask<<(WORD_SIZE*i)));
+					valid = valid | (CDB_data_valid & (valid_mask<<i));
+				end
 				else begin
 					data_each = readData(data_bus, i);
 					$display($realtime, ":controler: %g %g",i,data_each);
@@ -48,7 +56,9 @@ module CDB_data_controller(CDB_data_data, CDB_data_valid, CDB_data_addr,
 			data = 'b0;
 			for (i = 0; i < STORER_NUM; i = i+1) begin
 				index = readIndex(RB_index_bus, FU_NUM-STORER_NUM+i);
-				if (index == NULL)	begin end
+				if (index == NULL)	begin 
+					data = data | (CDB_data_addr & (mask<<(WORD_SIZE*i)));
+				end
 				else begin
 					data_each = readData(addr_bus, i);
 					data_each = data_each << (index*WORD_SIZE);

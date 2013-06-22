@@ -109,7 +109,8 @@ module ALU_RS(fu, RB_index, inst, vj, vk, qj, qk,
 				endcase
 					
 				valid = 1'b1;
-				//$display($realtime, ": %g result = %d, dest = %d", fuindex, result, dest);
+				if (op == INST_ADD)
+					$display($realtime, ": alu %g result = %d, dest = %d", fuindex, result, dest);
 				busy = 1'b0;
 				#0.5 dest = NULL;
 				#0.8 valid = 0'b0;
