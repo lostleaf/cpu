@@ -149,7 +149,7 @@ module reorder_buffer(CDB_data_data, CDB_data_valid, CDB_data_addr, busy,
 					end
 				else begin 	end
 			end
-			$display($realtime, "free = %b fuend = %0d %b", free, fuend, inst_now);
+			// $display($realtime, "free = %b fuend = %0d %b", free, fuend, inst_now);
 			//getRegStatusIssue
 			if (!free) begin
 				we_status_issue = 1'b0;
@@ -162,6 +162,7 @@ module reorder_buffer(CDB_data_data, CDB_data_valid, CDB_data_addr, busy,
 					Rdest_status_issue    = getRdest(RB_inst[tail]);
 					we_status_issue       = 1'b1;
 					RB_index_status_issue = tail;
+					$display($realtime, "set status %d %d", Rdest_status_issue, RB_index_status_issue);
 				end	
 				else we_status_issue = 1'b0;
 			end

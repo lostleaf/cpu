@@ -74,6 +74,8 @@ module load_RS(fu, RB_index, inst, vj, vk,  qj, qk,
                 end
                 else begin
                     reg_numj = inst[RS_START: RS_START-REG_INDEX+1];
+                    // $display("load %0d %d", reg_numj, qj);
+
                     getData(vj, qj, Vj, Qj, CDB_data_data, CDB_data_valid);
                     // $display("%d %d dsfsdfsdf", Vj, Qj);
                     if (op === INST_LWRR) begin
@@ -113,6 +115,7 @@ module load_RS(fu, RB_index, inst, vj, vk,  qj, qk,
                     else begin
                         c_read_enable = 1'b1;
                         c_ptr = Vj + Vk;
+                        $display("load data from %0d %0d %0d %0d", c_ptr, Vj, Vk, c_out);
                         ok = 0;
                     end
                 end
@@ -136,7 +139,10 @@ module load_RS(fu, RB_index, inst, vj, vk,  qj, qk,
         input[WORD_SIZE*RB_SIZE-1:0]    CDB_data_data;
         input[RB_SIZE-1:0]              CDB_data_valid;
         begin
+        // #0.1;
+        // $display(q);
             if (q === READY) begin
+            // $display("yes");
                 V = v;
                 Q = READY;
             end else if (readValidBus(CDB_data_valid, q)) begin
@@ -176,8 +182,9 @@ module load_RS(fu, RB_index, inst, vj, vk,  qj, qk,
             else begin 
                 valid = readValidBus(validBus, Q);
                 if (valid) begin
-                    Q = READY;
                     V = readDataBus(dataBus, Q);
+                    Q = READY;
+                    //$display("load get data ")
                 end else ok = 1'b0;
             end
         end
