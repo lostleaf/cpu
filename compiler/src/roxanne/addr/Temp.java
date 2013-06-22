@@ -131,7 +131,7 @@ public class Temp extends Addr implements Constants {
 		if (temp.addr instanceof Temp) {
 			Temp addr = genLoadIfNeed(strings,(Temp)temp.addr);
 			if (temp.index == null || temp.index instanceof Const) {
-				Addr index = Quad.genBeforeUseConst(strings, new Const(-((Const)temp.index).value), temp.level, ConstMode.PCOFFSET);
+				Addr index = Quad.genBeforeUseConst(strings, (Const)temp.index, temp.level, ConstMode.PCOFFSET);
 				strings.add(new Asm(Op.lw, ans, addr, index));
 			} else {
 				//temp.index instanceof Temp
@@ -164,7 +164,7 @@ public class Temp extends Addr implements Constants {
 		if (addr instanceof Temp) {
 			Temp newAddr = genLoadIfNeed(strings, (Temp)addr);
 			if (index ==  null || index instanceof Const) {
-				Addr newIndex = Quad.genBeforeUseConst(strings, new Const(-((Const)index).value), level, ConstMode.PCOFFSET);
+				Addr newIndex = Quad.genBeforeUseConst(strings, (Const)index, level, ConstMode.PCOFFSET);
 				strings.add(new Asm(Op.sw, storeDst, newAddr, newIndex));
 			} else {
 				Temp newIndex = genLoadIfNeed(strings, (Temp)index);
