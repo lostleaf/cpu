@@ -23,7 +23,7 @@ module CDB_data_controller(CDB_data_data, CDB_data_valid, CDB_data_addr,
 			reg[WORD_SIZE*RB_SIZE-1:0]	data, data_each;
 			reg[RB_SIZE-1:0]			valid, valid_each;
 			reg[RB_INDEX-1:0]			index;	
-			reg[WORD_SIZE-1:0]			i;
+			reg[FU_INDEX-1:0]			i;
 			reg[WORD_SIZE*RB_SIZE-1:0]	mask;
 			reg[RB_SIZE-1:0]			valid_mask;
 

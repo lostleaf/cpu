@@ -176,16 +176,17 @@ module reorder_buffer(CDB_data_data, CDB_data_valid, CDB_data_addr, busy,
 	end
 
 	always @(negedge clk) begin: updateCDB
-		reg [WORD_SIZE-1:0] i, target;
+		reg [WORD_SIZE-1:0] target;
+		reg [RB_INDEX-1:0]	i;
 		reg hasBranch;
 		reg [RB_INDEX-1:0]	mark;
 		reg [OPCODE_WIDTH-1:0]	op;
 
 		hasBranch  = 1'b0;
-		$display($realtime, "0back inst[%g] = %b", back, RB_inst[i]);
+		//$display($realtime, "0back inst[%g] = %b", back, RB_inst[i]);
 
 		#0.1 
-		$display($realtime, "1back inst[%g] = %b", back, RB_inst[i]);
+		$display($realtime, "1back inst[%g] = %b", back, RB_inst[back]);
 		for (i = inc(head); i != inc(tail); i = inc(i) ) begin
 			// $display("%d %b", readValidBus(CDB_data_valid, i), RB_inst[i]);
 			if (readValidBus(CDB_data_valid, i)) begin
@@ -211,11 +212,13 @@ module reorder_buffer(CDB_data_data, CDB_data_valid, CDB_data_addr, busy,
 			if (RB_data[mark]) begin
 				pc = target;
 				for (i = mark; i != inc(back); i = inc(i)) begin
+					$display($realtime, "kill inst[%g] = %b", i, RB_inst[i]);
 					reset_out = reset_out | (1'b1<<RB_fu[i]);
 					RB_valid[i] = 1'b0;
-					$display($realtime, "kill inst[%g] %b",i,  RB_inst[i]);
 				end
-				$display($realtime, "back inst[%g] = %b", back, RB_inst[i]);
+				//$display($realtime, "back inst[2] = %b", RB_inst[2]);
+				//$display($realtime, "back inst[3] = %b", RB_inst[3]);
+				//$display($realtime, "back inst[0] = %b", RB_inst[back]);
 				mark = dec(mark);
 				tail = mark;
 				back = mark;
