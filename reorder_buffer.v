@@ -3,7 +3,8 @@
 module reorder_buffer(CDB_data_data, CDB_data_valid, CDB_data_addr, busy, 
 						we_reg, wd_reg, ws_reg,
 						we_mem, wd_mem, ws_mem, mem_hit,
-						numj, numk, vj, vk, qj, qk, 
+						//numj, numk, vj, vk, qj, qk, 
+						numRB, qRB,
 						CDB_inst_fu, CDB_inst_inst, CDB_inst_RBindex,
 						Rdest_status_issue, RB_index_status_issue,	we_status_issue,
 						Rdest_status_wb,	RB_index_status_wb,		we_status_wb,
@@ -22,9 +23,9 @@ module reorder_buffer(CDB_data_data, CDB_data_valid, CDB_data_addr, busy,
 	output	reg [WORD_SIZE-1:0]	ws_mem;
 	input	wire 				mem_hit;
 
-	output	reg [REG_INDEX-1:0]	numj = 'bz, numk = 'bz;
-	input	wire[WORD_SIZE-1:0]	vj, vk;
-	input	wire[RB_INDEX-1:0]	qj, qk;
+	output	reg [REG_INDEX-1:0]	numRB; //numj = 'bz, numk = 'bz;
+	//input	wire[WORD_SIZE-1:0]	vj, vk;
+	input	wire[RB_INDEX-1:0]	qRB;//qj, qk;
 
 	output	reg [FU_INDEX-1:0]	CDB_inst_fu;
 	output	reg [WORD_SIZE-1:0]	CDB_inst_inst;
@@ -75,7 +76,7 @@ module reorder_buffer(CDB_data_data, CDB_data_valid, CDB_data_addr, busy,
 			we_reg      = 1'b0; 	we_mem	= 1'b0;	we_status_issue = 1'b0;	we_status_wb = 1'b0;
 			head        = 1'b0;		tail 	= 1'b0;	back 			= 1'b0;
 			CDB_inst_fu = NO_FU;
-			numj        = 'bz;		numk	= 'bz;
+			//numj        = 'bz;		numk	= 'bz;
 			cnt         = 0;
 			cnt_enable  = 1'b0;
 			reset_out	= ~'b0;
@@ -233,14 +234,21 @@ module reorder_buffer(CDB_data_data, CDB_data_valid, CDB_data_addr, busy,
 			else if (!RB_to_mem[head]) begin:writeToReg
 					we_mem          = 1'b0;
 
-					we_reg          = 1'b1;
-					wd_reg          = RB_data[head];
-					ws_reg          = RB_Rdest[head];
-					
-					we_status_wb       = 1'b1;
-					RB_index_status_wb = READY;
-					Rdest_status_wb    = RB_Rdest[head];
-					// $display("%0d %b", head, RB_inst[4]);
+					numRB = RB_Rdest[head];
+					$display($realtime, "numRB = %g, qRB = %g", numRB, qRB);
+					if (qRB == head) begin
+						we_reg          = 1'b1;
+						wd_reg          = RB_data[head];
+						ws_reg          = RB_Rdest[head];
+						
+						we_status_wb       = 1'b1;
+						RB_index_status_wb = READY;
+						Rdest_status_wb    = RB_Rdest[head];
+						// $display("%0d %b", head, RB_inst[4]);
+					end else begin
+						we_reg = 1'b0;
+						we_status_wb = 1'b0;
+					end
 				end
 				else begin:writeToMem
 					we_reg    = 1'b0;

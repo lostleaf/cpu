@@ -29,8 +29,8 @@ module CPU;
     wire[RB_INDEX-1:0]  CDB_inst_RBindex = 'bz;
 
     wire[WORD_SIZE-1:0] vi, vj, vk;
-    wire[RB_INDEX-1:0]  qi, qj, qk;
-    wire[REG_INDEX-1:0] numi = 'bz, numj = 'bz, numk = 'bz;
+    wire[RB_INDEX-1:0]  qi, qj, qk, qRB;
+    wire[REG_INDEX-1:0] numi = 'bz, numj = 'bz, numk = 'bz, numRB = 'bz;
 
     wire[FU_NUM-1:0]    busy;
 
@@ -78,9 +78,9 @@ module CPU;
                       cache_ptr_write, cache_val, cache_write_enable, cache_hit_write,
                       clk);
 
-    reg_status status(.get_num1(numi), .get_num2(numj), .get_num3(numk), 
+    reg_status status(.get_num1(numi), .get_num2(numj), .get_num3(numk), .get_numRB(numRB), 
         .value1(vi), .value2(vj), .value3(vk), 
-        .status1(qi), .status2(qj), .status3(qk),
+        .status1(qi), .status2(qj), .status3(qk), .statusRB(qRB),
         .write_reg_src(ws_reg), .write_reg_data(wd_reg), .write_reg_enable(we_reg), 
         .write_rs_src1(ws_status1), .write_rs_status1(wd_status1), 
         .write_rs_enable1(we_status1),
@@ -151,8 +151,9 @@ module CPU;
         .CDB_data_valid(CDB_data_valid), .CDB_data_addr(CDB_data_addr), 
         .busy(busy), .we_reg(we_reg), .wd_reg(wd_reg), .ws_reg(ws_reg), 
         .we_mem(we_dcache), .wd_mem(wd_dcache), .ws_mem(ws_dcache), 
-        .numj(numj), .numk(numk),
-        .vj(vj), .vk(vk), .qj(qj), .qk(qk), 
+        //.numj(numj), .numk(numk),
+        //.vj(vj), .vk(vk), .qj(qj), .qk(qk),
+        .numRB(numRB), .qRB(qRB), 
         .CDB_inst_fu(CDB_inst_fu), .CDB_inst_inst(CDB_inst_inst), 
         .CDB_inst_RBindex(CDB_inst_RBindex), 
         .Rdest_status_issue(ws_status1), .RB_index_status_issue(wd_status1), 
