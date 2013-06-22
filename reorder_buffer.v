@@ -84,6 +84,10 @@ module reorder_buffer(CDB_data_data, CDB_data_valid, CDB_data_addr, busy,
 		else 
 			// $display(RB_inst[back][31:28]);
 			// $display($realtime, "notFull = %b", notFull(head, back));
+			if (!notFull(head, back)) begin
+				$display($realtime, "pc = %g, full, head = %g, back=%g, tail = %g",
+					pc, head, back, tail);
+			end
 			if (notFull(head, back) && RB_inst[back][31:28] !== INST_HALT)  begin: IF
 				cache_enable = 1;
 				#0.5 if (hit) begin

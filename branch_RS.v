@@ -82,12 +82,13 @@ module branch_RS (fu, RB_index, inst, vj, vk,  qj, qk,
             ok = 1'b1;
             checkAndGetData(Qj, Vj, CDB_data_data, CDB_data_valid, ok);
             checkAndGetData(Qk, Vk, CDB_data_data, CDB_data_valid, ok);
-            if (ok) begin
+            #0.1 if (ok) begin
                 result = Vj >= Vk;
                 valid = 1'b1;
                 busy = 1'b0;
-                #1.3 valid = 0'b0;
-                dest = NULL;
+                #0.5 dest = NULL;
+                #0.8 valid = 0'b0;
+                
             end
         end
     end
