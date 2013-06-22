@@ -252,11 +252,12 @@ module reorder_buffer(CDB_data_data, CDB_data_valid, CDB_data_addr, busy,
 					end
 				end
 				else begin:writeToMem
+					$display("intend to write memory");
 					we_reg    = 1'b0;
 					we_status_wb = 1'b0;
 
-					if (cnt_enable && cnt < MEM_STALL)
-						#(MEM_STALL-cnt) begin end
+					// if (cnt_enable && cnt < MEM_STALL)
+					// 	#(MEM_STALL-cnt) begin end
 					cnt = 0;
 					cnt_enable = 1'b0;
 
