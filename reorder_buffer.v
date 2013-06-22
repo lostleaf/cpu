@@ -213,9 +213,13 @@ module reorder_buffer(CDB_data_data, CDB_data_valid, CDB_data_addr, busy,
 	always @(posedge clk) begin: writeBack	// issue the command at posedge, the the execution unit truly write data at negedge
 		// $display($realtime, " %b", RB_inst[inc(head)]);
 		if (RB_inst[inc(head)][31:28] === INST_HALT)begin
-		$display("stop");	
-		$finish;
+			$display("stop");	
+			$finish;
 		end 
+		if (inc(head) == 6) begin
+			$display("RB_valid:%g, RB_data_valid:%g, tail = %g",
+			 RB_valid[inc(head)], RB_data_valid[inc(head)], tail);
+		end
 		if (RB_valid[inc(head)] && RB_data_valid[inc(head)]) begin
 			head = inc(head);
 			$display("write back %0d %b", head, RB_inst[head]);

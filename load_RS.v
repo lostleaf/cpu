@@ -100,10 +100,10 @@ module load_RS(fu, RB_index, inst, vj, vk,  qj, qk,
             ok = 1'b1;
             checkAndGetData(Qj, Vj, CDB_data_data, CDB_data_valid, ok);
             checkAndGetData(Qk, Vk, CDB_data_data, CDB_data_valid, ok);
-            if (ok) begin
+            #0.1 if (ok) begin
                 if (op === INST_LW || op === INST_LWRR) begin
                     if (c_read_enable) begin
-                        #0.2;
+                        //#0.1;
                         result = c_out;
                         if (!c_hit) #MEM_STALL;
                         c_read_enable = 1'b0;
@@ -120,9 +120,9 @@ module load_RS(fu, RB_index, inst, vj, vk,  qj, qk,
             if (ok) begin
                 valid = 1'b1;
                 busy = 1'b0;
-                $display($realtime, " loader fu: %d freed op = %h", fuindex, op);
-                #1.3 valid = 0'b0;
-                dest = NULL;
+                $display($realtime, " loader fu: %d freed op = %h, dest = %d", fuindex, op, dest);
+                #0.5 dest = NULL;
+                #0.8 valid = 0'b0;
             end
         end
     end
