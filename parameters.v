@@ -1,5 +1,5 @@
 parameter WORD_SIZE     = 32;
-parameter MEM_SIZE      = 1024;
+parameter MEM_SIZE      = 1024*1024;
 parameter REG_INDEX     = 5;
 parameter REG_FILE_SIZE = 32;
 
