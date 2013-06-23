@@ -3,8 +3,8 @@ parameter MEM_SIZE      = 1024*1024;
 parameter REG_INDEX     = 5;
 parameter REG_FILE_SIZE = 32;
 
-parameter BLOCK_SIZE    = 16;
-parameter BLOCK_INDEX	= 4;
+parameter BLOCK_SIZE    = 64;
+parameter BLOCK_INDEX	= 6;
 parameter CACHE_SIZE    = 1024;
 parameter CACHE_INDEX	= 10;
 parameter TAG_SIZE      = WORD_SIZE-CACHE_INDEX-BLOCK_INDEX;
