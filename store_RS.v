@@ -102,7 +102,7 @@ module store_RS(fu, RB_index, inst,vi, vj, vk, qi, qj, qk,
 					data = Vi;
 					valid = 1'b1;
 					busy = 1'b0;
-					$display("(%0d+%0d %g) = %g", Vj, Vk, result, data);
+					$display("(%g) = %g", result, data);
 					#0.5 dest = NULL;
 					#0.8 valid = 0'b0;
 					

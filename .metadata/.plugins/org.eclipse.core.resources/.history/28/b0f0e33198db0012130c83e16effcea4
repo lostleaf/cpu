@@ -17,13 +17,12 @@ public class Codegen implements Constants {
 	//public gen(linkedList<CompilationUnit> )
 	// private the below one
 	public void gen(LinkedList<Asm> asms) throws Error {
-		//lines.add("\t.text");
-		//lines.add("\t.globl main");
+		lines.add("\t.text");
+		lines.add("\t.globl main");
 		
 		for (Asm a: asms) {
 			lines.add(a.codeGen());
 		}
-		lines.add("\thalt");
 	}
 	
 	

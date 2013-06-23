@@ -67,6 +67,10 @@ public class Main {
 			Codegen codegen = new Codegen();
 			codegen.gen(asms);
 
+			codegen.gen("\n\t.data 0x10000000");
+			for(DataFrag datafrag: translator.datafrags) {
+				codegen.genAll(datafrag.gen());
+			}
 			codegen.flush();
 		//=======================================CodeGen==============================================	
 		} catch(Error e) {
