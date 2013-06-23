@@ -408,11 +408,11 @@ halt
 
     eg. 
         
-        i = i*2 
-        would be compiled as  `i = i+i`,
+        i = i*2
+        would be compiled as  i = i+i,
     
         j = i+0 
-        would be compiled as  `move j, i`
+        would be compiled as  move j, i
         (although this will not used in the target code of this project))
         
 ####CPU
@@ -443,6 +443,7 @@ most of the test work
 1. inst_memory.v
 1. def_param.v
 1. parameters.v
+
 ####Assembler
 1. translate code.asm into binary code
 ####Test
