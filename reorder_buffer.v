@@ -85,10 +85,10 @@ module reorder_buffer(CDB_data_data, CDB_data_valid, CDB_data_addr, busy,
 		else 
 			// $display(RB_inst[back][31:28]);
 			// $display($realtime, "notFull = %b", notFull(head, back));
-			if (!notFull(head, back)) begin
+			/*if (!notFull(head, back)) begin
 				$display($realtime, "pc = %g, full, head = %g, back=%g, tail = %g",
 					pc, head, back, tail);
-			end
+			end*/
 			if (notFull(head, back) && RB_inst[back][31:28] !== INST_HALT)  begin: IF
 				cache_enable = 1;
 				#0.5 if (hit) begin
@@ -98,14 +98,14 @@ module reorder_buffer(CDB_data_data, CDB_data_valid, CDB_data_addr, busy,
 				end
 				if (inst[WORD_SIZE-1:WORD_SIZE-OPCODE_WIDTH] === INST_J) begin
 					pc = inst[J_PCOFFSET_START:0];
-					$display("set pc by jump %0d", pc);
+					//$display("set pc by jump %0d", pc);
 				end
 				else begin:addInst
 					back = inc(back);
 					//RB_PC[back] = pc;
 					RB_valid[back] = 1'b1;
 					RB_inst[back] = inst;
-					$display($realtime, "pc : %d, RB_inst[%0d] = %b", pc , back, RB_inst[back]);
+					//$display($realtime, "pc : %d, RB_inst[%0d] = %b", pc , back, RB_inst[back]);
 					pc = pc+1;
 				end 
 			end
@@ -138,7 +138,7 @@ module reorder_buffer(CDB_data_data, CDB_data_valid, CDB_data_addr, busy,
 					
 					RB_data_valid[tail] = 1'b0;
 					RB_fu[tail]         = i;
-					$display($realtime, "issuing to %d: op = %h, %b tail= %0d",i, op, inst_now, tail);
+					//$display($realtime, "issuing to %d: op = %h, %b tail= %0d",i, op, inst_now, tail);
 					if (op === INST_SWRR || op === INST_SW) begin
 						RB_to_mem[tail] = 1'b1;
 					end
@@ -165,7 +165,7 @@ module reorder_buffer(CDB_data_data, CDB_data_valid, CDB_data_addr, busy,
 					Rdest_status_issue    = getRdest(RB_inst[tail]);
 					we_status_issue       = 1'b1;
 					RB_index_status_issue = tail;
-					$display($realtime, "set status %d %d", Rdest_status_issue, RB_index_status_issue);
+					//$display($realtime, "set status %d %d", Rdest_status_issue, RB_index_status_issue);
 				end	
 				else we_status_issue = 1'b0;
 			end
@@ -186,7 +186,7 @@ module reorder_buffer(CDB_data_data, CDB_data_valid, CDB_data_addr, busy,
 
 		hasBranch  = 1'b0;
 		#0.1 for (i = inc(head); i != inc(tail); i = (i + 1) % RB_SIZE ) begin
-			$display("%0d %d %b", i, readValidBus(CDB_data_valid, i), RB_inst[i]);
+			//$display("%0d %d %b", i, readValidBus(CDB_data_valid, i), RB_inst[i]);
 			if (readValidBus(CDB_data_valid, i)) begin
 				op               = RB_inst[i][INST_START:INST_START-OPCODE_WIDTH+1];
 				RB_data[i]       = readDataBus(CDB_data_data, i);
@@ -210,7 +210,7 @@ module reorder_buffer(CDB_data_data, CDB_data_valid, CDB_data_addr, busy,
 				for (i = mark; i != inc(back); i = inc(i)) begin
 					reset_out = reset_out | (1'b1<<RB_fu[i]);
 					RB_valid[i] = 1'b0;
-					$display($realtime, "kill inst %b", RB_inst[i]);
+					//$display($realtime, "kill inst %b", RB_inst[i]);
 				end
 				mark = dec(mark);
 				tail = mark;
@@ -229,7 +229,7 @@ module reorder_buffer(CDB_data_data, CDB_data_valid, CDB_data_addr, busy,
 		if (RB_valid[inc(head)] && RB_data_valid[inc(head)]) begin
 			head = inc(head);
 			RB_valid[head] = 1'b0;
-			$display("write back %0d %b", head, RB_inst[head]);
+			//$display("write back %0d %b", head, RB_inst[head]);
 			if (RB_inst[head][INST_START:INST_START-OPCODE_WIDTH+1] == INST_BGE) begin
 				we_mem       <= 1'b0;
 				we_reg       <= 1'b0;
@@ -239,7 +239,7 @@ module reorder_buffer(CDB_data_data, CDB_data_valid, CDB_data_addr, busy,
 					we_mem          = 1'b0;
 
 					numRB = RB_Rdest[head];
-					$display($realtime, "numRB = %g, qRB = %g", numRB, qRB);
+					//$display($realtime, "numRB = %g, qRB = %g", numRB, qRB);
 					if (qRB == head) begin
 						we_reg          = 1'b1;
 						wd_reg          = RB_data[head];
@@ -255,7 +255,7 @@ module reorder_buffer(CDB_data_data, CDB_data_valid, CDB_data_addr, busy,
 					end
 				end
 				else begin:writeToMem
-					$display("intend to write memory");
+					//$display("intend to write memory");
 					we_reg    = 1'b0;
 					we_status_wb = 1'b0;
 
@@ -272,8 +272,8 @@ module reorder_buffer(CDB_data_data, CDB_data_valid, CDB_data_addr, busy,
 						cnt        = 1;
 						cnt_enable = 1'b1;
 					end else begin	end
-					$display($realtime, "mem_hit = %b, we:%g, wd:%g, ws:%g", 
-								mem_hit, we_mem, wd_mem, ws_mem);
+					//$display($realtime, "mem_hit = %b, we:%g, wd:%g, ws:%g", 
+								//mem_hit, we_mem, wd_mem, ws_mem);
 				end
 		end
 		else begin

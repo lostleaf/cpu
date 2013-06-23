@@ -55,14 +55,14 @@ module store_RS(fu, RB_index, inst,vi, vj, vk, qi, qj, qk,
 		end else if (!busy) begin: checkIssue
 				#0.1;
 				if (fu == fuindex) begin
-						$display($realtime, ": %d receive inst:%b", fuindex, inst);
+						//$display($realtime, ": %d receive inst:%b", fuindex, inst);
 						busy  <= 1'b1;
 						dest  <= RB_index;
 						op = inst[WORD_SIZE-1:WORD_SIZE-OPCODE_WIDTH];
 
 						reg_numi = inst[RD_START: RD_START-REG_INDEX+1];
 						reg_numj = inst[RS_START: RS_START-REG_INDEX+1];
-				$display($realtime,"validbus = %b", CDB_data_valid);
+				//$display($realtime,"validbus = %b", CDB_data_valid);
 						
 						getData(vi, qi, Vi, Qi, CDB_data_data, CDB_data_valid);
 						getData(vj, qj, Vj, Qj, CDB_data_data, CDB_data_valid);
@@ -96,7 +96,7 @@ module store_RS(fu, RB_index, inst,vi, vj, vk, qi, qj, qk,
 				checkAndGetData(Qj, Vj, CDB_data_data, CDB_data_valid, ok);
 				checkAndGetData(Qk, Vk, CDB_data_data, CDB_data_valid, ok);
 				checkAndGetData(Qi, Vi, CDB_data_data, CDB_data_valid, ok);
-				$display($realtime, "in store ok = %g, Qi, Qj, Qk: %g,%g,%g", ok, Qi, Qj, Qk);
+				//$display($realtime, "in store ok = %g, Qi, Qj, Qk: %g,%g,%g", ok, Qi, Qj, Qk);
 				if (ok) begin
 					#0.1 result = Vj+Vk;
 					data = Vi;
@@ -121,11 +121,11 @@ module store_RS(fu, RB_index, inst,vi, vj, vk, qi, qj, qk,
 		input[RB_SIZE-1:0]				CDB_data_valid;
 		begin
 			if (q === READY) begin
-				$display($realtime, "read from reg_file");
+				//$display($realtime, "read from reg_file");
 				V = v;
 				Q = READY;
 			end	else if (readValidBus(CDB_data_valid, q)) begin
-						$display($realtime, "read from databus[%g]",q);
+						//$display($realtime, "read from databus[%g]",q);
 						V = readDataBus(CDB_data_data, q);
 						Q = READY;
 					end
@@ -162,7 +162,7 @@ module store_RS(fu, RB_index, inst,vi, vj, vk, qi, qj, qk,
 			else begin 
 				valid = readValidBus(validBus, Q);
 				if (valid) begin
-					$display($realtime, "read from databus[%g]",Q);
+					//$display($realtime, "read from databus[%g]",Q);
 					V = readDataBus(dataBus, Q);
 					Q = READY;
 				end else ok = 1'b0;
