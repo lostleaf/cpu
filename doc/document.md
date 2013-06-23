@@ -7,7 +7,7 @@
 
 PS1:由于本报告是在开发过程中逐渐完成，所以呈现中英混杂的结果，请谅解
 
-PS2:访问[这里](dsf)得到更好的排版效果
+PS2:访问[这里](https://github.com/lostleaf/cpu/blob/master/doc/document.md)得到更好的排版效果
 
 ##综述
 我们写的是带reorder buffer的tomasulo
