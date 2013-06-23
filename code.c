@@ -1,13 +1,13 @@
 int main()
 {
-	int a[2][3],b[3][2],c[2][2];
+	int a[20][20],b[20][20],c[20][20];
 	int i,j,k;
 	
-	for(i=0;i<2;i++)
+	for(i=0;i<20;i++)
 	{
-		for(j=0;j<3;j++)
+		for(j=0;j<20;j++)
 		{
-			for(k=0;k<2;k++)
+			for(k=0;k<20;k++)
 			{
 				c[i][k] += a[i][j]*b[j][k];
 			}
