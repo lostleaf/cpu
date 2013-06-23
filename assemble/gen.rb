@@ -23,6 +23,6 @@ class DataGenerator
     end
 end
 
-ARGV << "ram_data.hex" if ARGV.empty?
+# ARGV << "ram_data.hex" if ARGV.empty?
 g = DataGenerator.new(ARGV[0])
-g.generate_matrix(20, 20, 20)
+g.generate_matrix(ARGV[1].to_i, ARGV[2].to_i, ARGV[3].to_i)

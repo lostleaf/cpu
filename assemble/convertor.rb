@@ -11,7 +11,7 @@ class Convertor
             new_line = line.split('//')[0].split('@')[0].strip.gsub(/\s+/, '')
             result << new_line if new_line.length > 0
         end
-        puts result
+        # puts result
         @output.puts result
     end
 end
