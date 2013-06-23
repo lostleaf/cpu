@@ -9,22 +9,20 @@ PS1:由于本报告是在开发过程中逐渐完成，所以呈现中英混杂�
 
 PS2:访问[这里](dsf)得到更好的排版效果
 
-##环境需求
-1. 操作系统:
+##综述
+我们写的是带reorder buffer的tomasulo
 
-    需要`ubuntu`操作系统
-    
-2. 安装需要的环境:
+doc目录下，除了5stage, isa和dependency graph，其他的图片是我们的原件设计与连接图
 
-```
-    sudo apt-get install openjdk-7-jdk ruby1.9.3 iverilog
-    gem install rake
-```
+Tomasulo With Reorder Buffer部分介绍了整个CPU的设计
 
-##测试
-1. 将测试源代码及内存数据文件拷贝到项目根目录下，并分别命名为`code.c`和`ram_data.txt`
+Work Division部分介绍了分工
 
-2. 在项目根目录下执行 `rake` 命令，即可自动编译+模拟并输出结果
+因为我们设计了一个代码重排的算法，code scheduling部分介绍了该算法。
+
+doc目录下，code schedule.xlsx介绍了该算法的一个例子。dependency graph则是该例子中代码的依赖关系图。
+
+isa部分介绍了我们使用的isa。我们的isa与mips类似，但增加了双寄存器寻址的lwrr与swrr，改变了寻址方式，使得compiler也做了大范围的相应修改。
 
 ##Tomasulo With Reorder Buffer
 ###Unit List
