@@ -4,8 +4,10 @@ parameter REG_INDEX     = 5;
 parameter REG_FILE_SIZE = 32;
 
 parameter BLOCK_SIZE    = 16;
+parameter BLOCK_INDEX	= 4;
 parameter CACHE_SIZE    = 1024;
-parameter TAG_SIZE      = 18;
+parameter CACHE_INDEX	= 10;
+parameter TAG_SIZE      = WORD_SIZE-CACHE_INDEX-BLOCK_INDEX;
 
 parameter ALU_ADD       = 4'h0;
 parameter ALU_SUB       = 4'h1;

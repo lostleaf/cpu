@@ -25,37 +25,37 @@ module data_cache(ptr_read1,    ptr_read2,    ptr_read3,
                     out_mem_block1, out_mem_block2, out_mem_block3, 
                     clk, write_enable);
 
-    wire  [BLOCK_INDEX-1:0]   offset_r1,   offset_r2,   offset_r3,   offset_w;
-    wire  [CACHE_INDEX-1:0]   index_r1,    index_r2,    index_r3,    index_w;
-    wire  [TAG_SIZE-1:0]  data_tag_r1, data_tag_r2, data_tag_r3, data_tag_w;
+    wire  [3:0]   offset_r1,   offset_r2,   offset_r3,   offset_w;
+    wire  [9:0]   index_r1,    index_r2,    index_r3,    index_w;
+    wire  [17:0]  data_tag_r1, data_tag_r2, data_tag_r3, data_tag_w;
 
     reg [WORD_SIZE*BLOCK_SIZE-1:0]  cache   [CACHE_SIZE-1:0];
     reg [TAG_SIZE-1:0]              tag     [CACHE_SIZE-1:0];
     reg                             dirty   [CACHE_SIZE-1:0];
     reg                             valid   [CACHE_SIZE-1:0];
 
-    assign offset_r1   = ptr_read1[BLOCK_INDEX-1:0];
-    assign index_r1    = ptr_read1[BLOCK_INDEX+CACHE_INDEX-1:BLOCK_INDEX];
-    assign data_tag_r1 = ptr_read1[WORD_SIZE-1:BLOCK_INDEX+CACHE_INDEX];
+    assign offset_r1   = ptr_read1[3:0];
+    assign index_r1    = ptr_read1[13:4];
+    assign data_tag_r1 = ptr_read1[31:14];
     
-    assign offset_r2   = ptr_read2[BLOCK_INDEX-1:0];
-    assign index_r2    = ptr_read2[BLOCK_INDEX+CACHE_INDEX-1:BLOCK_INDEX];
-    assign data_tag_r2 = ptr_read2[WORD_SIZE-1:BLOCK_INDEX+CACHE_INDEX];
+    assign offset_r2   = ptr_read2[3:0];
+    assign index_r2    = ptr_read2[13:4];
+    assign data_tag_r2 = ptr_read2[31:14];
     
-    assign offset_r3   = ptr_read3[BLOCK_INDEX-1:0];
-    assign index_r3    = ptr_read3[BLOCK_INDEX+CACHE_INDEX-1:BLOCK_INDEX];
-    assign data_tag_r3 = ptr_read3[WORD_SIZE-1:BLOCK_INDEX+CACHE_INDEX];
+    assign offset_r3   = ptr_read3[3:0];
+    assign index_r3    = ptr_read3[13:4];
+    assign data_tag_r3 = ptr_read3[31:14];
     
-    assign offset_w    = ptr_write[BLOCK_INDEX-1:0];
-    assign index_w     = ptr_write[BLOCK_INDEX+CACHE_INDEX-1:BLOCK_INDEX];
-    assign data_tag_w  = ptr_write[WORD_SIZE-1:BLOCK_INDEX+CACHE_INDEX];
+    assign offset_w    = ptr_write[3:0];
+    assign index_w     = ptr_write[13:4];
+    assign data_tag_w  = ptr_write[31:14];
 
     initial begin:init
         reg [WORD_SIZE-1:0] i;
         for(i = 0; i < CACHE_SIZE; i = i + 1) begin
             valid[i] = 1'b0;
             dirty[i] = 1'b0;
-            tag[i]   = 'b0;
+            tag[i]   = 18'b0;
         end
     end
 
@@ -91,10 +91,10 @@ module data_cache(ptr_read1,    ptr_read2,    ptr_read3,
                     (// xor new value with original value in cache
                         (
                             val ^ (cache[index_w] >> 
-                            ((BLOCK_SIZE-1 - offset_w) * WORD_SIZE) & 32'hffffffff)
+                            ((15 - offset_w) * WORD_SIZE) & 32'hffffffff)
                         )
                     //shift to original place
-                        << ((BLOCK_SIZE-1 - offset_w) * WORD_SIZE)
+                        << ((15 - offset_w) * WORD_SIZE)
                     ) ^ cache[index_w];
             end else begin
                 hit_write = 0;
@@ -112,10 +112,10 @@ module data_cache(ptr_read1,    ptr_read2,    ptr_read3,
                     (// xor new value with original value in cache
                         (
                             val ^ (cache[index_w] >> 
-                            ((BLOCK_SIZE-1 - offset_w) * WORD_SIZE) & 32'hffffffff)
+                            ((15 - offset_w) * WORD_SIZE) & 32'hffffffff)
                         )
                     //shift to original place
-                        << ((BLOCK_SIZE-1 - offset_w) * WORD_SIZE)
+                        << ((15 - offset_w) * WORD_SIZE)
                     ) ^ cache[index_w];
                 $display(cache[0]);
             end
@@ -128,7 +128,7 @@ module data_cache(ptr_read1,    ptr_read2,    ptr_read3,
         inout [TAG_SIZE-1:0] tag;
         input [TAG_SIZE-1:0] data_tag;
         inout [BLOCK_SIZE*WORD_SIZE-1:0] cache;
-        input [BLOCK_INDEX-1:0] offset;
+        input [3:0] offset;
         output hit;
         output [WORD_SIZE-1:0] out;
         input [BLOCK_SIZE*WORD_SIZE-1:0] out_mem_block;
@@ -136,7 +136,7 @@ module data_cache(ptr_read1,    ptr_read2,    ptr_read3,
             if (tag == data_tag && valid) begin 
                 // $display(hit);
                 hit = 1;
-                out = cache >> ((BLOCK_SIZE-1 - offset) * WORD_SIZE) & 32'hffffffff;
+                out = cache >> ((15 - offset) * WORD_SIZE) & 32'hffffffff;
                 dirty = 1;
                 valid = 1;
             end else begin
@@ -153,7 +153,7 @@ module data_cache(ptr_read1,    ptr_read2,    ptr_read3,
                 dirty = 0;
                 valid = 1;
                 tag = data_tag;
-                out = cache >> ((BLOCK_SIZE-1 - offset) * WORD_SIZE) & 32'hffffffff;               
+                out = cache >> ((15 - offset) * WORD_SIZE) & 32'hffffffff;               
             end
         end
     endtask
