@@ -1,7 +1,7 @@
 ISA
 =====
 ##instructions
-`add` `sub` `mul` `lw` `sw` `addi` `subi` `muli` `lwi` `swi` `li` `j` `jr` `bge` 
+`add` `sub` `mul` `lw` `sw` `addi` `subi` `muli` `lwrr` `swrr` `li` `j` `jr` `bge` 
 
 ##add
 
@@ -46,7 +46,7 @@ op2: register
 `0010_dst(5bits)_op1(5bits)_op2(5bits)_0(13bits)`
 
 
-##lw
+##lwrr
 load form address `base+offset` into `dst`
 ###usage
 ```
@@ -60,7 +60,7 @@ offset: register
 `0011_dst(5bits)_op1(5bits)_op2(5bits)_0(13bits)`
 
 
-##sw
+##swrr
 save `dst` to address `base+offset`
 ###usage
 ```
@@ -115,7 +115,7 @@ op2: immediate
 `0111_dst(5bits)_op1(5bits)_op2(18bits)`
 
 
-##lwi
+##lw
 load form address `base+offset` into `dst`
 ###usage
 ```
@@ -129,7 +129,7 @@ offset: immediate
 `1000_dst(5bits)_op1(5bits)_op2(18bits)`
 
 
-##swi
+##sw
 save `dst` to address `base+offset`
 ###usage
 ```
@@ -189,3 +189,12 @@ label: label
 ```
 ###binary
 `1101_op1(5bits)_op2(10bits)_pc-offset(13bits)`
+
+##halt
+halt
+###usage
+```
+halt
+```
+###binary
+`1110_00...0(28bits)`

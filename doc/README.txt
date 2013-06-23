@@ -1,0 +1,9 @@
+我们写的是带reorder buffer的tomasulo
+
+除了5stage, isa和dependency graph，其他的图片是我们的原件设计与连接图
+
+其他几个文档：
+reorder_buffer_plan介绍了整个CPU的设计
+Work Division介绍了分工
+因为我们设计了一个代码重排的算法，code scheduling.mkd介绍了该算法，code schedule.xlsx介绍了该算法的一个例子。dependency graph则是该例子中代码的依赖关系图。
+isa.md与isa.jpg介绍了我们使用的isa。我们的isa与mips类似，但要特别注意lwrr与swrr改变了寻址方式，使得compiler也做了大范围的相应修改。

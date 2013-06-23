@@ -1,135 +1,174 @@
 Plan for Tomasulo With Reorder Buffer
 ====
-##RB
+##Unit List
+1. reorder buffer (RB)
+1. alu_rs (rs stands for reservation station)
+    - can be used as mul or add,sub. But one alu_rs can be used for one purpose only, either mul,muli or add,addi,sub,subi
+    - 3 alu_rs for mul,muli and 3 alu_rs for add,addi, sub, subi
+1. 3 load_rs
+1. 1 store_rs
+1. 1 branch_rs
+1. reg_status
+1. reg_file
+1. 1 data_cache
+1. data_memory
+1. 1 inst_cache
+1. inst_memory
+1. 1 CDB_data bus
+    - it consists of 3 groups of wires:
+        - wire[WORD_SIZE*RB_SIZE-1:0] CDB_data_data
+            - data of each rs is written to it
+        - wire[RB_SIZE-1:0]           CDB_data_valid
+            - to show whether the data on CDB_data_data and CDB_data_addr is valid or not
+        - wire[WORD_SIZE*RB_SIZE-1:0] CDB_data_addr
+            - store_rs put the address on CDB_data_addr, and the write data on CDB_data_data
+1. 1 CDB_data_controller
+    - Since each rs can write to CDB_data bus, which will easily cause conflicts, we use CDB_data_controller to deal with all writes to the CDB_data bus.
+1. 1 CDB_inst
+    - for RB to issue instruction to the corresponding function unit(fu)
+    - it consists of 3 groups of wires
+        - wire[FU_INDEX-1:0]  CDB_inst_fu (to which fu)
+        - wire[WORD_SIZE-1:0] CDB_inst_inst (inst to issue)
+        - wire[RB_INDEX-1:0]  CDB_inst_RBindex (write result to this RB entry)
 
-head->
-
-tail->
-
-back->
 
 
+##Plan for Each Crutial Stage
+####All writes occur at negedge while the command of write issue before this
 ##1 IF
 ###Reorder Buffer
 	@posedge: 
-		check if not full
-			new PC put into PC=> get Instr from instr cache
+		check if RB not full
+			new PC put into PC
+			get Instr from instr cache
 	@negedge: 
-		if (instr hit)
-			get the instr -> add to RB back
-			Pc = Pc+4
-		else 
-			wait until the 99th cycle's negedge
-			to get the instr and add to RB's back
-			if (j)
-				flush tail+1 <= entry index <= back
-				PC = PC+PCoffset	// +4??
-			else PC = PC+4
-
+		if (instr miss)
+		  wait until the 99th cycle's negedge
+		
+		if (j)
+			pc = jump target
+        else 
+		  get the instr and add to RB's back
+		  Pc = Pc+1
+####Note: Pc can be affected by branch at write back cycle.
+		
 ##2 ISSUE
 ###Reorder Buffer
 	@posedge
-		if (tail+1) has instr			// if (valid[tail+1])
-			if (branch || jump)
-				set PC to RB[tail]+PCOFFSET
-			else
-				issue if can
-				++tail
-	@posedge
-		if head has instr			// <=> not empty <=> front != tail or valid[front+1]
-			write				// all write is done at negedge
-			++head;
-		set the newly issued instr's FU write_enable
+		if (inc(tail)) has instr			
+		// if (RB_valid[inc(tail)]), inc(tail) = （tail+1）%RB_SIZE
+			issue if can
+			tail = inc(tail)
+	
 
 ####issue if can
 
 RB
 	
 	@posedge
-		if FU not busy
-			<FU, RB entry index, instr> put onto FU's CDB_instr
+		if there's a corresponding FU not busy
+			<FU, RB entry index, inst> put onto CDB_inst
+	    issue the command of updating reg_status
+####Note: When "write-back" wants to update the same reg status, do not write back.
+	    
+Reg_status
+	
 	@negedge
-		update Register status (I'll write)
+		update Register status 
 
 RS
 
 	@posedge
-		#0.1 if see <FU, RB entry index, instr>
-			update busy, op, invaild, Dest
-			check corresponding register status to update Qj, Qk, Vj, Vk
-				if (Qj ready)
-					put the data onto Vj
+	
+	   if (!busy)
+		#0.1 if see fu on CDB_inst_fu == RS's fuindex
+			update
+		       busy, op, 
+		       invaild(set the correspoding CDB_data_valid to invalid), 
+		       dest(the RB entry that issued the command)
+			check corresponding register status to update Qj, Qk, Vj, Vk (and Qi, Vi if needed)
+			for i, j, k
+				if (Q ready)
+					put the data onto V
 				else check corresponding reorder buffer entry's CDB
 					if (ready)
-						put the data on Vj
-					else set wait for index 
-				
+						put the data on V
+					else set wait for index 	
+					
+		     for branch_rs		
+		          it will execute and set CDB_data_data (jump? 1:0) at this issue cycle
 
 ##3 execute
 ###each RS (eg. a mul has 3 RS, each work independently)
 	@posedge
 		// since busy set at #0.1 after posedge
-		// for a new op, it'll wait until the next cycle to execute
-		if (!busy || Qj or Qk not ready)
-			set corresponding ALU_enable false
-		else {
-			set ALU's in1 and in2
-			if (add or sub)
-				#0.5/*at negedge*/ read ALU_out and put it onto the Dest's CDB
-			else if (mul)
-				#3.5 read ALU_out and put it onto the Dest's CDB
-			else if (load buffer) {
-				#0.5 if (hit)
-					read cache data and put it onto the Dest's CDB
-				     else {
-					#99/*at the 99th cycle's negedge*/ read cache data and put it onto the Dest's CDB     
-				     }
-			} else if (store buffer) {
-				// mem[Qj-Qk] = Qi
-				if (Qi ready)
-				#0.5/*at negedge*/ read Qj+Qk and put it onto the Dest's CDB			read Qi put onto Dest's addr CDB
-			}
+		// for a newly issued op, it'll wait until the next cycle to execute
+		// put... onto CDB_data_... is a command issued to CDB_data_controller, which will truly write the data @(negedge clk)
+		if (busy)
+			if(Qj and Qk are both ready) {
+		       if (add or sub or branch)
+                     #0.1 set CDB_data_valid valid
+                     put the result onto CDB_data_data
+       	       else if (mul)
+		      		#3.1 set CDB_data_valid valid
+                    put the result onto CDB_data_data
+			   else if (load buffer) {
+			     	#0.5 if (hit)
+			     		read cache data
+			     	else 
+			     	#99/*at the 99th cycle's negedge*/ read cache data 
+			   	     
+			        set CDB_data_valid valid
+                    put the data onto CDB_data_data
+			   } else if (store buffer) {
+				    // mem[Qj+Qk] = Qi
+				    if (Qi ready)
+				    #0.1/*at negedge*/ put Qj+Qk onto the CDB_data_addr
+				    put Qi onto CDB_data_addr
+			   }
 		}
 
 ##4 write back
 ####Reorder Buffer
-@negedge check head's corresponding CDB
+@negedge 
 
-	if (data valid)
-		if (Rdest not empty)
+    #0.1 check each entry's corresponding CDB
+          if (there's a branch which wants to jump) {
+                pc = jump target // since it update pc after the IF stage, the new pc will be set to jump target
+          }
+
+@posedge
+
+	if (RB_data_valid[head])
+		if (write to reg && the reg is still waiting for its data)
 			write it to the register file
 			set corresponding register status to empty
-		else // addr not empty
-			write data to mem[addr] in dcache
-####!! important 
-	since no read and write from the same mem addr, RAW hazard will not happen
+		else if (write to cache) {
+			if (cnt_enable && cnt < MEM_STALL)
+				#(MEM_STALL-cnt) begin end
+			cnt = 0;
+			cnt_enable = 1'b0;
+
+			we_mem = 1'b1;
+			wd_mem = RB_data[head];
+			ws_mem = RB_addr[head];
+
+			#0.6 if (!mem_hit) {
+			cnt        = 1;
+			cnt_enable = 1'b1;
+            }
+            // for the purpose of having the cnt and cnt_enable, see optimization-write back
+		}
 
 
-##Questions remained 
-####Dcache
-has multiple addr and rdata
+##Hardware Optimization
+###RB
+Using 3 pointers--head, tail and back--instead of the only 2 pointers -- head and tail-- normally used in RB.
 
-	if hit, read simultaneously
-	else only one request is put into memory??
-	
-####memory
-2 addr port
-write and read simultaneously?? will there be any hazard??
-
-####branch
-how to deal with branch
-when to flush?? when to set PC
-RB check oprand for branch ready or not
-if not, stop to do anything??
-
-####Work Allocation??
-#### li?
-good instruction referred in VMIPS p266
-
-CVI	V1, R1//	V1[i] = i*R1
-
-we could have 
-
-CVI		V1, imm		// V1[i] = i*imm
-
-	
+Back is to load instruction in advance to reduce stall that may encounter if an instruction is only loaded when tail is about to issue it.
+###Branch
+The branch_rs will check its data availability at issue cycle. So if the data is available at the issue cycle, there'll be only 1 stall.
+###Write back
+When writing back to data cache and a write miss occurs, reorder buffer will not just wait until the write is done. It will still write to register file and will only stall at the next write to the memory.
+###Data cache
+The data cache has one write port and 3 read ports corresponding to the one store_rs and the 3 load_rs, so that the 3 load_rs can load data simultaneously.
