@@ -55,7 +55,7 @@ module branch_RS (fu, RB_index, inst, vj, vk,  qj, qk,
             #0.1 ;
             // $display("fu: ", fu);
             if (fu == fuindex) begin
-                $display($realtime, "%m : %d receive inst:%b %d", fuindex, inst, RB_index);
+                // $display($realtime, "%m : %d receive inst:%b %d", fuindex, inst, RB_index);
                 busy  <= 1'b1;
                 dest  <= RB_index;
                 op = inst[WORD_SIZE-1:WORD_SIZE-OPCODE_WIDTH];
@@ -67,8 +67,8 @@ module branch_RS (fu, RB_index, inst, vj, vk,  qj, qk,
                 Vk = inst[BGE_IMM_START:BGE_PCOFFSET_START+1];
 
                 Qk = READY;
-                $display($realtime, ": branch issue j<n:%g, v,%g, q:%g, V:%g, Q:%g>",
-                            reg_numj, vj, qj, Vj, Qj);
+                // $display($realtime, ": branch issue j<n:%g, v,%g, q:%g, V:%g, Q:%g>",
+                //             reg_numj, vj, qj, Vj, Qj);
                  
                 #0.1;
                 reg_numj = 'bz;
@@ -89,7 +89,7 @@ module branch_RS (fu, RB_index, inst, vj, vk,  qj, qk,
                 
             #0.1 if (ok) begin
                 result = Vj >= Vk;
-                $display("branch taken? %g", result);
+                // $display("branch taken? %g", result);
                 valid = 1'b1;
                 busy = 1'b0;
                 #0.5 dest = NULL;

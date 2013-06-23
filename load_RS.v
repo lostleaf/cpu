@@ -62,7 +62,7 @@ module load_RS(fu, RB_index, inst, vj, vk,  qj, qk,
             #0.1 ;
             // $display("fu: ", fu);
             if (fu == fuindex) begin
-                $display($realtime, "%m : %d receive inst:%b", fuindex, inst);
+                // $display($realtime, "%m : %d receive inst:%b", fuindex, inst);
                 busy  <= 1'b1;
                 dest  <= RB_index;
                 op = inst[WORD_SIZE-1:WORD_SIZE-OPCODE_WIDTH];
@@ -103,7 +103,7 @@ module load_RS(fu, RB_index, inst, vj, vk,  qj, qk,
             checkAndGetData(Qj, Vj, CDB_data_data, CDB_data_valid, ok);
             checkAndGetData(Qk, Vk, CDB_data_data, CDB_data_valid, ok);
             #0.1 if (ok) begin
-                $display($realtime, "Vj, Vk:", Vj, Vk);
+                // $display($realtime, "Vj, Vk:", Vj, Vk);
                 if (op === INST_LW || op === INST_LWRR) begin
                     if (c_read_enable) begin
                         //#0.1;
@@ -115,7 +115,7 @@ module load_RS(fu, RB_index, inst, vj, vk,  qj, qk,
                     else begin
                         c_read_enable = 1'b1;
                         c_ptr = Vj + Vk;
-                        $display("load data from %0d %0d %0d %0d", c_ptr, Vj, Vk, c_out);
+                        // $display("load data from %0d %0d %0d %0d", c_ptr, Vj, Vk, c_out);
                         ok = 0;
                     end
                 end
@@ -124,7 +124,7 @@ module load_RS(fu, RB_index, inst, vj, vk,  qj, qk,
             if (ok) begin
                 valid = 1'b1;
                 busy = 1'b0;
-                $display($realtime, " loader fu: %d freed op = %h, dest = %d, result = %d, c_ptr  = %g", fuindex, op, dest, result,c_ptr);
+                // $display($realtime, " loader fu: %d freed op = %h, dest = %d, result = %d, c_ptr  = %g", fuindex, op, dest, result,c_ptr);
                 #0.5 dest = NULL;
                 #0.8 valid = 0'b0;
             end

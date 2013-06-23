@@ -119,7 +119,7 @@ module data_cache(ptr_read1,    ptr_read2,    ptr_read3,
                     ) ^ cache[index_w];
                 $display(cache[0]);
             end
-            $display($realtime, ": dcache[%g]  = %g",ptr_write, cache[index_w]);
+            // $display($realtime, ": dcache[%g]  = %g",ptr_write, cache[index_w]);
         end
     end
 

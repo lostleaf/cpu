@@ -45,7 +45,7 @@ module CDB_data_controller(CDB_data_data, CDB_data_valid, CDB_data_addr,
 				end*/
 				else begin
 					data_each = readData(data_bus, i);
-					$display($realtime, ":controler: %g %g",i,data_each);
+					// $display($realtime, ":controler: %g %g",i,data_each);
 					data_each = data_each << (index*WORD_SIZE);
 					CDB_data_data = (CDB_data_data & ~(mask <<(index*WORD_SIZE))) | data_each;
 					valid_each = readValid(valid_bus, i);
@@ -69,7 +69,7 @@ module CDB_data_controller(CDB_data_data, CDB_data_valid, CDB_data_addr,
 				end /*else if (!readValid(valid_bus, i)) begin end*/
 				else begin
 					data_each = readData(addr_bus, i);
-					$display($realtime, "addr of %g is %g", i, data_each);
+					// $display($realtime, "addr of %g is %g", i, data_each);
 					data_each = data_each << (index*WORD_SIZE);
 					//CDB_data_addr = data | data_each;
 					CDB_data_addr = (CDB_data_addr & ~(mask <<(index*WORD_SIZE))) | data_each;

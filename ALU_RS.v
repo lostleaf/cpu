@@ -52,7 +52,7 @@ module ALU_RS(fu, RB_index, inst, vj, vk, qj, qk,
 			result <= 'b0;
 		end else if (!busy) begin: checkIssue
 				#0.1 if (fu == fuindex) begin
-						$display($realtime, " %m: %d receive inst:%b", fuindex, inst);
+						// $display($realtime, " %m: %d receive inst:%b", fuindex, inst);
 						op = inst[WORD_SIZE-1:WORD_SIZE-OPCODE_WIDTH];
 						busy  = 1'b1;
 						dest  = RB_index;
@@ -84,7 +84,7 @@ module ALU_RS(fu, RB_index, inst, vj, vk, qj, qk,
 			ok = 1'b1;
 			checkAndGetData(Qj, Vj, CDB_data_data, CDB_data_valid, ok);
 			checkAndGetData(Qk, Vk, CDB_data_data, CDB_data_valid, ok);
-			$display($realtime,":alu:%g, op = %h, ok = %d, Qj = %d, Vj = %d, Qk = %d, Vk = %d",fuindex, op, ok, Qj, Vj, Qk, Vk);
+			// $display($realtime,":alu:%g, op = %h, ok = %d, Qj = %d, Vj = %d, Qk = %d, Vk = %d",fuindex, op, ok, Qj, Vj, Qk, Vk);
 			if (ok) begin
 				case (op)
 					INST_SUB: begin
@@ -109,8 +109,8 @@ module ALU_RS(fu, RB_index, inst, vj, vk, qj, qk,
 				endcase
 					
 				valid = 1'b1;
-				if (op == INST_ADD)
-					$display($realtime, ": alu %g result = %d, dest = %d", fuindex, result, dest);
+				// if (op == INST_ADD)
+					// $display($realtime, ": alu %g result = %d, dest = %d", fuindex, result, dest);
 				busy = 1'b0;
 				#0.5 dest = NULL;
 				#0.8 valid = 0'b0;
