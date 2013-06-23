@@ -1,3 +1,30 @@
+task :default => [:all]
+
+desc "do all things"
+task :all do
+    puts "compiling C code to assemblly code"
+    puts `java -jar compiler.jar code.c 1>code.asm 2>/dev/null`
+    puts "compile successful"
+
+    puts "assembling assemblly code to binary code"
+    puts `ruby assemble/assembler.rb code.asm code.bin`
+    puts "assemble successful"
+
+    puts "compiling cpu"
+    puts `iverilog CPU.v -o CPU`
+    puts "compile cpu successful"
+
+    puts "simulating and write log to result.txt"
+    puts `vvp CPU > result.txt`
+    puts "simulation finished"
+
+    puts "collecting results"
+    puts `ruby assemble/collector.rb result.txt`
+end
+
+
+
+
 namespace :test do
 
     desc "clear all teshbench executables"
