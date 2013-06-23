@@ -55,7 +55,7 @@ module branch_RS (fu, RB_index, inst, vj, vk,  qj, qk,
             #0.1 ;
             // $display("fu: ", fu);
             if (fu == fuindex) begin
-                $display($realtime, "%m : %d receive inst:%b %d", fuindex, inst, RB_index);
+                //$display($realtime, "%m : %d receive inst:%b %d", fuindex, inst, RB_index);
                 busy  <= 1'b1;
                 dest  <= RB_index;
                 op = inst[WORD_SIZE-1:WORD_SIZE-OPCODE_WIDTH];

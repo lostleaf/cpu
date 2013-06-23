@@ -46,7 +46,7 @@ isa部分介绍了我们使用的isa。我们的isa与mips类似，但增加了�
         - wire[RB_SIZE-1:0]           CDB_data_valid
             - to show whether the data on CDB_data_data and CDB_data_addr is valid or not
         - wire[WORD_SIZE*RB_SIZE-1:0] CDB_data_addr
-            - store_rs put the address on CDB_data_addr, and the write data on CDB_data_data
+            - store_rs put the address on CDB_data_addr, and the data to be written on CDB_data_data
 1. 1 CDB_data_controller
     - Since each rs can write to CDB_data bus, which will easily cause conflicts, we use CDB_data_controller to deal with all writes to the CDB_data bus.
 1. 1 CDB_inst
@@ -446,6 +446,7 @@ most of the test work
 
 ####Assembler
 1. translate code.asm into binary code
+
 ####Test
 1. rakefile 
     - to simplize the compilation of verilog codes
