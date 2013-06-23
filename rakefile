@@ -8,6 +8,7 @@ task :all do
 
     puts "assembling assemblly code to binary code"
     puts `ruby assemble/assembler.rb code.asm code.bin`
+    puts `ruby assemble/convertor.rb ram_data.txt ram_data.hex`
     puts "assemble successful"
 
     puts "compiling cpu"
