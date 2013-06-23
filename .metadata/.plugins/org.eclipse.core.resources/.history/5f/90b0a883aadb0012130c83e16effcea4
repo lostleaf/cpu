@@ -32,7 +32,7 @@ public class Scheduler {
 	public ArrayList<Asm> reSchedule() throws roxanne.error.Error {
 		buildGraph();
 		ArrayList<Node> nodes = reSchedule(root);
-		System.out.println(nodes);
+		//System.out.println(nodes);
 		int p = 0;
 		for(int i = front; i <= back; ++i) {
 			for(; p < nodes.size(); ++p) {
@@ -136,8 +136,8 @@ public class Scheduler {
 			}
 		}
 		
-		//System.out.println(n);
-		//System.out.println(l);
+		System.out.println(n);
+		System.out.println(l);
 		
 		return l;
 	}

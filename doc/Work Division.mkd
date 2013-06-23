@@ -1,0 +1,50 @@
+Work Division
+====
+##Luo Xuan
+###Compiler
+1. design a code scheduling algorithm(see code scheduling.mkd for an example and short description)
+1. dead code elimination
+1. strength reduction
+
+    eg. 
+        
+        i = i*2 
+        would be compiled as  `i = i+i`,
+    
+        j = i+0 
+        would be compiled as  `move j, i`
+        (although this will not used in the target code of this project))
+        
+###CPU
+most of the initial designing of the protocols between the components
+
+1. reorder_buffer.v
+1. ALU_RS.v
+1. store_RS.v
+1. CDB_data_controller.v
+1. CPU.v
+1. def_param.v
+1. parameters.v
+1. reg_file_RX.v
+1. reg_status.v
+1. timescale.v
+
+##Li Qinlin
+most of the test work
+    - test matrix of different data and different sizes
+###CPU
+1. reorder_buffer.v
+1. branch_RS.v
+1. load_RS.v
+1. CPU.v
+1. data_cache.v
+1. data_memory.v
+1. inst_cache.v
+1. inst_memory.v
+1. def_param.v
+1. parameters.v
+###Assembler
+1. translate code.asm into binary code
+###Test
+1. rakefile 
+    - to simplize the compilation of verilog codes

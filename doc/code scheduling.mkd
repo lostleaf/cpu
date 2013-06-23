@@ -1,0 +1,124 @@
+代码重排
+===
+例子在code scheduling.xlsx里
+##算法
+###单循环的代码重排
+在文件dependency graph里可以看到，例子里的这段代码可以被组织成为有向无环图，并且只有一个最顶端的节点swrr。虽然swrr依赖于add3，但是由于add3一定会在add4之前执行，因而swrr可以被认为之依赖于add4。
+
+所以整段代码的依赖关系可以被组织成一棵树。由于swrr，sw可以依赖于三个节点，所以该树至多是一棵三叉树。所以可以深度优先搜索整棵树来生成代码。
+
+    ArrayList<Node> reSchedule(Node n) {
+
+		if (n == null || n.calced) return new ArrayList<Node>();  
+		//每个节点标记是否被计算过，像例子中的add3，在lwrr3之前就被计算过了，所以swrr再扫到它的时候就不会被再生成了。
+		n.calced = true;
+		
+		ArrayList<Node> l = reSchedule(n.l), m = null, r = null;
+		// l,m,r分别为左儿子，中儿子，右儿子
+		append(l, n);
+		//将有依赖性的代码加在l的末端，如swrr等
+		if (n.m != null) {
+			m = reSchedule(n.m);
+			//将长的代码链作为目标代码链（例子中的target），将短的（例子中的from）并入长的里面，得到result
+			if (l.size() >= m.size())
+				merge(l,l.size()-1, m, m.size()-1);//合并代码链，
+			else {
+			     //将有依赖性的代码加在m的末端
+				l.remove(l.size()-1);
+				append(m, n);
+				merge(m, m.size()-1, l, l.size()-1);
+				l = m;
+			}
+		}
+		
+		if (n.r != null) {
+			r = reSchedule(n.r);
+			if (l.size() >= r.size())
+				merge(l,l.size()-1, r, r.size()-1);
+			else {
+				l.remove(l.size()-1);
+				append(r, n);
+				merge(r, r.size()-1, l, l.size()-1);
+				l = r;
+			}
+		}
+		
+		return l;
+    }
+    
+    
+/\*
+from从fromEnd依次往上搜，将from的代码插入to中。每条from的代码c尝试插入两个位置：
+
+   1. 由于toEnd与c的依赖关系所得的c能够插入的最后一个位置lastPos
+      - 如果该位置本就是个stall（确切地说，是由于stall留下的空白），那么就直接插在这个位置，不尝试第二个位置；否则，先尝试插在lastPos, 将lastPos及以上的代码，往前移一格，接着尝试位置2
+   2. 由于lastPos处不是stall，那么lastPos对应的代码就必然在一块连续的没有stall的代码块中（该代码块可以只有lastPos对应的代码）。所以向前找到第一个是stall的位置。尝试插在该位置
+   
+   比较两种可能，选择最好的可能
+   
+\*/
+
+void merge(ArrayList<Node> to, int toEnd, ArrayList<Node> from, int fromEnd) {
+    	
+    	//to就是target， toEnd是to的最后一个代码的位置，且必依赖于from的最后一个代码
+    	
+		if (from.isEmpty() || toEnd < 0 || fromEnd < 0) return;
+
+		//fromEnd到from的最后一条指令之间可能有stall
+		int stallCnt = 0;
+		for (int i = fromEnd; i >=0; --i){
+			if (!isStall(from.get(i)))
+				break;
+			else ++stallCnt;
+		}
+
+		fromEnd -= stallCnt+1;    //fromEnd变为from的最后一条代码再-1的位置
+		ArrayList<Node> toCopy = (ArrayList<Node>) to.clone();
+		//merge会修改to，所以先做一个拷贝
+		
+		//位置1
+		int insertPos = toEnd-Asm.getStall(from.get(fromEnd+1).asm.op)-1;
+		if (insertPos < 0) {
+			for (; insertPos < 0; ++insertPos) {
+				to.add(0, new Node(null, null, null, null));
+				//加stall
+			}
+		}
+		if (isStall(to.get(insertPos))) {
+			to.set(insertPos, from.get(fromEnd+1));
+			merge(to, insertPos, from, fromEnd);
+		} else {
+		    //尝试位置2
+			toCopy.add(insertPos+1, from.get(fromEnd+1));
+			merge(toCopy, insertPos+1, from, fromEnd);
+			
+			// find the firstStall
+			for (int i = insertPos; i >= 0; --i) {
+				if (isStall(to.get(i))) {
+					insertPos = i;
+					break;
+				}
+			}
+			if (insertPos >= 0) {
+				to.set(insertPos, from.get(fromEnd+1));
+				merge(to, insertPos, from, fromEnd);
+			} else {
+				to.add(0, from.get(fromEnd+1));
+				merge(to, 0, from, fromEnd);
+			}
+			
+			//选择最好的
+			if (toCopy.size() < to.size())
+				to = toCopy;
+		}
+}
+####为什么只尝试这两种可能？
+第一种可能： 可能会增加代码长度，但是能让再之前的代码插入的时候尽量不会增长代码长度
+第二种可能： 不会增加代码长度，但是会让再之前的代码在插入的时候容易增长代码
+
+####寄存器分配
+由于是在代码重排以后统一进行寄存器分配，因而很好的解决了这个问题
+
+###多循环的代码重排（loop unroll with code scheduling）
+虽然没有来的及写，但是这个算法可以很容易的拓展到多循环的代码，从而实现loop unroll。
+在多循环里，dependency graph会变成一个森林而非一棵树。有因为循环之间没有依赖关系，所以只需将每棵树用上面的方法生成，然后将这些树得到的代码链逐次merge即可。但此时由于没有依赖性，在merge第一条指令的时候，位置1会变成to的最后一条代码的位置。再后面的过程不变
